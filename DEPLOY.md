@@ -6,7 +6,7 @@ In the Pages project for a tool, set:
 
 | Setting | Value |
 | --- | --- |
-| Root directory | the tool folder, such as `tindog` or `drumkit` |
+| Root directory | the tool folder, such as `drumkit` or `mortgage` |
 | Build command | `npm ci && npm run build` |
 | Build output directory | `dist` |
 
@@ -14,7 +14,7 @@ Vite is configured with `base: './'`, so JS, CSS, images, and sounds are emitted
 
 | Tool | Folder | Live URL |
 | --- | --- | --- |
-| TinDog | `tindog` | https://fun-tindog.pages.dev |
 | Drum Kit | `drumkit` | https://fun-drumkit.pages.dev |
+| Mortgage | `mortgage` | https://fun-mortgage.pages.dev |
 
 From the repo root, `npm run build` installs and builds every tool the same way.

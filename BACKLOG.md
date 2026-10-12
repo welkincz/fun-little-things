@@ -1,16 +1,89 @@
 # Backlog
 
-A daily routine takes the **top item**, ships it, and deletes it. Each one is a real change that fits in a single sitting. Later items can assume the ones above them have already shipped.
+One sitting each. Next item is at the top. The mortgage calculator is already in the repo.
 
-1. **Drum Kit — name the pads.** Show the instrument under each pad (Tom 1, Tom 2, Tom 3, Tom 4, Snare, Crash, Kick) in small type that sits outside the photo. Keep the letter as the big label.
-2. **TinDog — swipe the quotes.** On the testimonial, a horizontal drag of at least 30px moves to the next quote (drag left) or the previous one (drag right). Keep the Previous and Next buttons.
-3. **Guess My Number.** Add `guess/`, a Vite React rebuild of [05-Guess-My-Number](https://github.com/welkincz/05-Guess-My-Number): secret number from 1 to 20, score starts at 20, one point off for a miss, high score for the session, Again starts a new round. `npm ci && npm run build` writes `guess/dist` with relative asset paths. Add it to the README list as **Guess My Number** — Guess a number from 1 to 20. — https://fun-guess.pages.dev
-4. **Drum Kit — volume.** One slider from quiet to full, default at 80%, applied to every new hit. It can forget the setting on refresh.
-5. **TinDog — monthly or yearly.** A control on the pricing section switches the paid plans between per month and per year. A year is the monthly price times 10. Free stays Free. Nothing is charged.
-6. **Dice.** Add `dice/`: two dice, Roll button and the space bar, each face shown plus the total. Same build contract as the other tools. README line: **Dice** — Roll two dice. — https://fun-dice.pages.dev
-7. **Drum Kit — record a take.** Record stores up to 16 hits and the gap before each one, with any gap longer than 1.5 seconds cut down to 1.5. Play replays that take on the pads. Starting Record again clears the previous take.
-8. **TinDog — Labrador first on a phone.** Below 700px, stack the plans with Labrador on top. At 700px and up, keep Chihuahua, Labrador, Mastiff.
-9. **Countdown.** Add `countdown/`: presets for 1, 5, and 25 minutes, plus Start, Pause, and Reset. At zero, beep with the Web Audio API (no audio file) and show "Time's up". README line: **Countdown** — A timer with three presets. — https://fun-countdown.pages.dev
-10. **Drum Kit — one hit per key press.** Ignore the browser's auto-repeat so holding a key down plays that drum once, until the key is released.
-11. **Home page.** Add `home/`: a single page that lists every tool with the same one-line description and live link as the README. Same build contract. README can point at https://fun-little-things.pages.dev
-12. **TinDog — sign-up is a demo.** Each Sign up button opens a dialog that says there is no account because this is a demo. Escape and a Close button dismiss it, and focus returns to the button that opened it.
+Do not treat unverified claims as rules. Where a note says to verify a figure, check the official page before encoding it.
+
+## 1. Ontario rent increase checker
+
+Can a landlord raise the rent that much, on that date?
+
+Inputs: current rent, date of the last increase or move-in, date the notice arrived, proposed rent, effective date, whether the unit was first occupied after November 15, 2018 (yes / no / not sure), and whether the notice was on an LTB form.
+
+Output: a verdict for the amount, the 12-month gap, the 90-day notice, and the form. Show the maximum legal new rent and the earliest legal effective date. Include the guideline history, links to the LTB and ontario.ca, a summary the tenant can paste into an email, and a shareable URL.
+
+Rules, from ontario.ca (residential rent increases, updated June 23, 2026): the guideline is 2.1% for 2026 and 1.9% for 2027, and the cap is 2.5%. At least 12 months since the last increase or the start of the tenancy. At least 90 days' written notice on the LTB form. Units first occupied for residential use after November 15, 2018 are exempt, along with turnover, community housing, long-term care, and commercial tenancies.
+
+Above-guideline increases, care homes, and social housing are out of scope: say so and point to the LTB. Do not encode a 10-year expiry for above-guideline increases. That claim is not verified.
+
+Disclaimer: information, not legal advice.
+
+## 2. Group expense splitter
+
+A shared ledger with no account and no install. The ledger lives in the URL hash, with localStorage as a backup.
+
+Add people. Add expenses with a payer, an amount, and a split that is equal, by shares, or by exact amounts. Show running balances and the smallest set of transfers that settles them. Copy the link, and copy the settlement as text for an e-Transfer. Dinner mode: subtotal, then 13% HST, then a tip percent, then the amount per person. Export CSV.
+
+Cap the ledger at about 100 expenses so the link stays usable. Do not state a daily limit for any other product as fact.
+
+## 3. GST/HST registration tracker
+
+For freelancers and side work. The CRA small-supplier test is not a rolling 12 months.
+
+Enter taxable revenue by calendar quarter, or by month rolled up to quarters. Include worldwide and export revenue. A rideshare or taxi flag forces registration.
+
+Output: still a small supplier, or must register. Say which test tripped (one quarter, or four consecutive quarters). Show the date the person stops being a small supplier, when to start charging, the 29-day registration deadline, and how much room is left.
+
+Use the CRA worked examples as one-click demos and as tests. Keep the numbers in the browser. Link to the CRA page. Say this is general information, and leave out charities and public service bodies.
+
+Source to follow: the CRA page "When to register for and start charging the GST/HST".
+
+## 4. Ontario and Toronto land transfer tax
+
+A standalone calculator that reuses the mortgage `rules.ts` brackets.
+
+Price, location, property type, and first-time buyer. Show Ontario land transfer tax, Toronto municipal land transfer tax, the rebates, and the net. The Toronto brackets are the April 1, 2026 rates.
+
+## 5. Mortgage renewal shock
+
+Balance, years left, and the old and new rates. Show the new payment, the change, and what happens if the amortization is extended to keep the payment flat.
+
+## 6. Minimum down payment and insurability
+
+Price in, then the minimum down payment, the CMHC tier, whether the mortgage is insurable, and whether 30 years is available. The insured cap is $1,500,000, not $1,000,000.
+
+## 7. CMHC premium and sales tax
+
+Price, down payment, and amortization. Show the premium percent, the premium in dollars, and the Ontario sales tax due in cash.
+
+## 8. FHSA, RRSP, or TFSA first
+
+An interactive order for someone saving, using a marginal tax rate they enter. Verify the FHSA annual and lifetime limits on canada.ca before building. Those limits were not verified in the research.
+
+## 9. Rent notice date calculator
+
+Date math only: 90 days' notice and the 12-month gap. This can ship as a mode of the rent increase checker.
+
+## 10. Roommate utility splitter
+
+Bills, people, and days present. Split by days, with optional weights. Share the result as a link.
+
+## 11. Restaurant bill, HST, and tip
+
+Subtotal, then HST, then tip, then the amount per person. Verify the HST rate on a CRA page before shipping. It was not fetched for the research.
+
+## 12. Accelerated bi-weekly versus monthly
+
+The same mortgage, two frequencies, side by side. Show payoff time and interest saved, and one chart. Use the FCAC and WOWA definitions already in the mortgage engine: accelerated bi-weekly is half the monthly payment, 26 times a year.
+
+## 13. Prepay the mortgage or invest
+
+The person enters the mortgage rate, their marginal tax rate, and an expected return. Show both paths. Do not invent a return.
+
+## 14. Rent versus buy in Toronto
+
+Rent, rent growth, price, down payment, rate, property tax, and a maintenance percent. Every one of those is a user input. Do not invent defaults for them. Compare net worth over a number of years they choose.
+
+## 15. Private PDF merge
+
+Merge, reorder, and rotate PDFs in the browser with pdf-lib. Nothing is uploaded. The market is crowded. Build it only as a showcase.
