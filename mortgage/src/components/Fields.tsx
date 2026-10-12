@@ -190,14 +190,16 @@ export function ChoiceGroup<T extends string>({
                 aria-describedby={hint ? hintId : undefined}
                 onChange={() => onChange(option.id)}
               />
-              <span>
-                {option.label}
+              <span className="choice-row">
                 {checked ? (
                   <motion.span
                     layoutId={reduced ? undefined : `choice-${name}`}
                     className="choice-mark"
+                    aria-hidden="true"
+                    transition={{ type: "spring", stiffness: 520, damping: 40, mass: 0.7 }}
                   />
                 ) : null}
+                <span className="choice-text">{option.label}</span>
               </span>
             </label>
           );

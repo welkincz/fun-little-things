@@ -178,29 +178,44 @@ legend, .fold summary {
   height: 1px;
 }
 
-.choices span {
+.choices .choice-row {
   position: relative;
   display: flex;
   align-items: center;
   width: 100%;
   min-height: 44px;
-  padding: 8px 8px 8px 16px;
+  padding: 10px 12px 10px 16px;
   color: var(--mist);
   border-bottom: 1px solid #2e4b45;
+  cursor: pointer;
+  transition: color 160ms ease;
 }
 
-.choices input:checked + span { color: var(--field); }
+.choices .choice-row:hover { color: var(--field); }
 
-.choice-mark {
+.choices .choice-text {
+  position: relative;
+  z-index: 1;
+  line-height: 1.3;
+}
+
+.choices input:checked + .choice-row {
+  color: var(--field);
+  font-weight: 600;
+}
+
+/* Selected option: a tinted row with an accent edge that glides between options. */
+.choices .choice-mark {
   position: absolute;
-  left: 0;
-  top: 8px;
-  bottom: 8px;
-  width: 2px;
-  background: var(--mark);
+  inset: 4px 0;
+  z-index: 0;
+  border-left: 2px solid var(--mark);
+  border-radius: 0 6px 6px 0;
+  background: rgba(214, 226, 245, 0.1);
+  pointer-events: none;
 }
 
-.choices input:focus-visible + span {
+.choices input:focus-visible + .choice-row {
   outline: 2px solid var(--mark);
   outline-offset: 2px;
 }
