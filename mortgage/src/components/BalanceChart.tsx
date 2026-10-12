@@ -9,9 +9,8 @@ export function BalanceChart({ points }: { points: { year: number; balance: numb
       className="chart"
       aria-hidden="true"
       initial={reduced ? false : { clipPath: "inset(0 100% 0 0)" }}
-      whileInView={{ clipPath: "inset(0 0% 0 0)" }}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      animate={{ clipPath: "inset(0 0% 0 0)" }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
     >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
