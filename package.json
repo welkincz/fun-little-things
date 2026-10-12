@@ -1,8 +1,10 @@
 {
   "name": "fun-little-things",
   "private": true,
+  "description": "Small, fun web tools shipped one day at a time.",
   "scripts": {
-    "build": "npm run build:mortgage",
+    "build": "npm run build:drumkit && npm run build:mortgage",
+    "build:drumkit": "npm ci --prefix drumkit && npm run build --prefix drumkit",
     "build:mortgage": "npm ci --prefix mortgage && npm run build --prefix mortgage"
   }
 }

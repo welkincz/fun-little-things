@@ -1,21 +1,20 @@
 # Deploy
 
-Each tool is its own Vite app and its own Cloudflare Pages project. This repository does not deploy itself.
+Each tool is its own Cloudflare Pages project. Deployment happens outside this repo; nothing here publishes a site.
 
-Asset URLs are relative (`base: './'` in Vite), so a project can be hosted at the site root.
+In the Pages project for a tool, set:
 
-## Mortgage
+| Setting | Value |
+| --- | --- |
+| Root directory | the tool folder, such as `drumkit` or `mortgage` |
+| Build command | `npm ci && npm run build` |
+| Build output directory | `dist` |
 
-Root directory: `mortgage`
+Vite is configured with `base: './'`, so JS, CSS, images, and sounds are emitted as relative paths and are meant to be served from the site root.
 
-```bash
-cd mortgage
-npm ci
-npm run build
-```
+| Tool | Folder | Live URL |
+| --- | --- | --- |
+| Drum Kit | `drumkit` | https://fun-drumkit.pages.dev |
+| Mortgage | `mortgage` | https://fun-mortgage.pages.dev |
 
-Output directory: `mortgage/dist`
-
-Pages URL: https://fun-mortgage.pages.dev
-
-From the repo root, `npm run build` runs the same install and build.
+From the repo root, `npm run build` installs and builds every tool the same way.

@@ -1,13 +1,12 @@
 # fun-little-things
 
-Small, fun web tools shipped one day at a time.
+Small, fun web tools shipped one day at a time. Each tool is its own tiny site, built to be finished in a sitting and left up on the web.
 
 ## Fun little things
 
-- [TinDog](https://fun-tindog.pages.dev) finds a dog nearby.
-- [Drum Kit](https://fun-drumkit.pages.dev) plays a kit from the keyboard.
-- [Mortgage](https://fun-mortgage.pages.dev) is a Canadian mortgage calculator: payment, cash to close, stress test, and renewal.
+- **[Drum Kit](https://fun-drumkit.pages.dev)** — A seven-piece kit you play with the keyboard or a click.
+- **[Mortgage](https://fun-mortgage.pages.dev)** — A Canadian mortgage calculator: payment, cash to close, stress test, and renewal.
 
-## Build
+Drum Kit rebuilds [04_DrumKit](https://github.com/welkincz/04_DrumKit) (`master`, which has the sounds and drum photos).
 
-Each tool builds on its own with `npm ci && npm run build`. Output lands in that tool's `dist` folder, with relative asset paths. See [DEPLOY.md](DEPLOY.md).
+The next thing to build is the top item in [BACKLOG.md](BACKLOG.md). Publishing steps are in [DEPLOY.md](DEPLOY.md).
