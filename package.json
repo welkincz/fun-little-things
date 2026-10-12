@@ -1,0 +1,8 @@
+{
+  "name": "fun-little-things",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:mortgage",
+    "build:mortgage": "npm ci --prefix mortgage && npm run build --prefix mortgage"
+  }
+}
