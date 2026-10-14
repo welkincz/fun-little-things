@@ -516,6 +516,19 @@ h2 {
 .notes :focus-visible { outline-color: var(--mark); }
 
 @media (min-width: 901px) {
+  /* Cap the results column so the readable measure stays about 680px.
+     Horizontal padding is 56px; Cash to close then ends with the list. */
+  .statement {
+    justify-self: start;
+    width: 100%;
+    max-width: calc(680px + 56px + 56px);
+  }
+
+  /* .cash-total is a p, so it needs the extra class to beat the 68ch paragraph cap. */
+  .statement :is(.leaders, .plain, .cash-total, .table-wrap, .chart) {
+    max-width: 680px;
+  }
+
   .hero-stick {
     position: sticky;
     top: 0;
