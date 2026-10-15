@@ -1,84 +1,165 @@
-import { useEffect, useId, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { formatGrouped } from "../format";
+import { formatDollars, formatGrouped, formatRate } from "../format";
 import { parseAmount, parsePercent } from "../lib/mortgage/money";
+import { stepBy, stepPage } from "../rangeStep";
+
+export function DecimalField({
+  id,
+  value,
+  format,
+  parse,
+  min,
+  max,
+  minLabel,
+  maxLabel,
+  onCommit,
+  prefix,
+  suffix,
+  widthClass,
+  describedBy,
+  invalid,
+  optional = false,
+  invalidMessage = "Enter a number.",
+  ariaLabel,
+}: {
+  id: string;
+  value: number | null;
+  format: (value: number) => string;
+  parse: (raw: string) => number | null;
+  min: number;
+  max: number;
+  minLabel: string;
+  maxLabel: string;
+  onCommit: (value: number | null) => void;
+  prefix?: string;
+  suffix?: string;
+  widthClass?: string;
+  describedBy?: string;
+  invalid?: boolean;
+  optional?: boolean;
+  invalidMessage?: string;
+  ariaLabel?: string;
+}) {
+  const valueText = value == null ? "" : format(value);
+  const [text, setText] = useState(valueText);
+  const [note, setNote] = useState<string | null>(null);
+  const dirty = useRef(false);
+  const noteId = note ? `${id}-note` : undefined;
+  const described = [describedBy, noteId].filter(Boolean).join(" ") || undefined;
+
+  useEffect(() => {
+    if (!dirty.current) setText(valueText);
+  }, [valueText]);
+
+  function commit(raw: string) {
+    dirty.current = false;
+    if (optional && raw.trim() === "") {
+      setNote(null);
+      setText("");
+      if (value != null) onCommit(null);
+      return;
+    }
+    const parsed = parse(raw);
+    if (parsed == null || !Number.isFinite(parsed)) {
+      setNote(invalidMessage);
+      setText(valueText);
+      return;
+    }
+    if (parsed < min) {
+      setNote(`Minimum is ${minLabel}.`);
+      setText(format(min));
+      onCommit(min);
+      return;
+    }
+    if (parsed > max) {
+      setNote(`Maximum is ${maxLabel}.`);
+      setText(format(max));
+      onCommit(max);
+      return;
+    }
+    setNote(null);
+    setText(format(parsed));
+    if (value == null || Math.abs(parsed - value) > 1e-6) onCommit(parsed);
+  }
+
+  return (
+    <div className="num-wrap">
+      <div className={widthClass ? `num ${widthClass}` : "num"}>
+        {prefix ? (
+          <span className="num-affix" aria-hidden="true">
+            {prefix}
+          </span>
+        ) : null}
+        <input
+          id={id}
+          inputMode="decimal"
+          autoComplete="off"
+          aria-label={ariaLabel}
+          value={text}
+          aria-invalid={invalid || note ? true : undefined}
+          aria-describedby={described}
+          onFocus={(event) => event.currentTarget.select()}
+          onChange={(event) => {
+            dirty.current = true;
+            setNote(null);
+            setText(event.target.value);
+          }}
+          onBlur={() => commit(text)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              event.currentTarget.blur();
+            }
+          }}
+        />
+        {suffix ? (
+          <span className="num-affix" aria-hidden="true">
+            {suffix}
+          </span>
+        ) : null}
+      </div>
+      {note ? (
+        <p className="clamp-note" id={noteId} role="status">
+          {note}
+        </p>
+      ) : null}
+    </div>
+  );
+}
 
 export function AmountField({
   id,
   label,
   value,
   onValue,
-  hint,
-  invalid,
-  alert,
-  placeholder,
   optional = false,
+  invalid,
 }: {
   id: string;
   label: string;
   value: number | null;
   onValue: (value: number | null) => void;
-  hint?: string;
-  invalid?: boolean;
-  alert?: string;
-  placeholder?: string;
   optional?: boolean;
+  invalid?: boolean;
 }) {
-  const [text, setText] = useState(value == null ? "" : formatGrouped(value));
-  const [focused, setFocused] = useState(false);
-  const reduced = useReducedMotion();
-  const hintId = hint ? `${id}-hint` : undefined;
-  const alertId = alert ? `${id}-alert` : undefined;
-  const describedBy = [hintId, alertId].filter(Boolean).join(" ") || undefined;
-
-  useEffect(() => {
-    if (!focused) setText(value == null ? "" : formatGrouped(value));
-  }, [focused, value]);
-
   return (
-    <div className="field">
+    <div className="detail-field">
       <label htmlFor={id}>{label}</label>
-      <div className="line-input">
-        <input
-          id={id}
-          inputMode="decimal"
-          autoComplete="off"
-          placeholder={placeholder}
-          value={text}
-          aria-invalid={invalid || undefined}
-          aria-describedby={describedBy}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          onChange={(event) => {
-            const next = event.target.value;
-            setText(next);
-            if (optional && next.trim() === "") {
-              onValue(null);
-              return;
-            }
-            const parsed = parseAmount(next);
-            if (parsed != null) onValue(parsed);
-          }}
-        />
-        {focused ? (
-          <motion.span
-            className="field-mark"
-            initial={reduced ? false : { scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: 0.22 }}
-          />
-        ) : null}
-      </div>
-      {hint ? (
-        <p className="hint" id={hintId}>
-          {hint}
-        </p>
-      ) : null}
-      {alert ? (
-        <p className="alert" id={alertId} role="alert">
-          {alert}
-        </p>
-      ) : null}
+      <DecimalField
+        id={id}
+        value={value}
+        optional={optional}
+        format={formatGrouped}
+        parse={parseAmount}
+        min={0}
+        max={100_000_000}
+        minLabel={formatDollars(0)}
+        maxLabel={formatDollars(100_000_000)}
+        prefix="$"
+        onCommit={onValue}
+        invalid={invalid}
+      />
     </div>
   );
 }
@@ -88,71 +169,156 @@ export function RateField({
   label,
   value,
   onValue,
-  hint,
   optional = false,
-  digits = 2,
+  max = 30,
 }: {
   id: string;
   label: string;
   value: number | null;
   onValue: (value: number | null) => void;
-  hint?: string;
   optional?: boolean;
-  digits?: number;
+  max?: number;
 }) {
-  const shown = (next: number) =>
-    new Intl.NumberFormat("en-CA", {
-      minimumFractionDigits: Math.min(2, digits),
-      maximumFractionDigits: digits,
-    }).format(next);
-  const [text, setText] = useState(value == null ? "" : shown(value));
-  const [focused, setFocused] = useState(false);
-  const reduced = useReducedMotion();
-  const hintId = hint ? `${id}-hint` : undefined;
+  return (
+    <div className="detail-field">
+      <label htmlFor={id}>{label}</label>
+      <DecimalField
+        id={id}
+        value={value}
+        optional={optional}
+        format={formatRate}
+        parse={(raw) => {
+          const parsed = parsePercent(raw);
+          if (parsed == null) return null;
+          return Math.round(parsed * 100) / 100;
+        }}
+        min={0}
+        max={max}
+        minLabel="0%"
+        maxLabel={`${max}%`}
+        suffix="%"
+        onCommit={onValue}
+      />
+    </div>
+  );
+}
 
-  useEffect(() => {
-    if (!focused) setText(value == null ? "" : shown(value));
-  }, [focused, value, digits]);
+export function RangeControl({
+  label,
+  min,
+  max,
+  step,
+  value,
+  ariaValueText,
+  describedBy,
+  jumpRef,
+  onValue,
+}: {
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  value: number;
+  ariaValueText: string;
+  describedBy?: string;
+  jumpRef: { current: boolean };
+  onValue: (value: number) => void;
+}) {
+  const pointer = useRef(false);
+  const valueRef = useRef(value);
+  valueRef.current = value;
+  const display = Math.min(max, Math.max(min, Number.isFinite(value) ? value : min));
+
+  function move(next: number) {
+    valueRef.current = next;
+    onValue(next);
+  }
+
+  function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    const current = valueRef.current;
+    let next: number | null = null;
+    if (event.key === "ArrowUp" || event.key === "ArrowRight") {
+      next = stepBy(current, event.shiftKey ? 10 : 1, step, min, max);
+    } else if (event.key === "ArrowDown" || event.key === "ArrowLeft") {
+      next = stepBy(current, event.shiftKey ? -10 : -1, step, min, max);
+    } else if (event.key === "PageUp") {
+      next = stepPage(current, 1, step, min, max);
+    } else if (event.key === "PageDown") {
+      next = stepPage(current, -1, step, min, max);
+    }
+    if (next == null) return;
+    event.preventDefault();
+    move(next);
+  }
 
   return (
-    <div className="field">
-      <label htmlFor={id}>{label}</label>
-      <div className="line-input">
-        <input
-          id={id}
-          inputMode="decimal"
-          autoComplete="off"
-          value={text}
-          aria-describedby={hintId}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          onChange={(event) => {
-            const next = event.target.value;
-            setText(next);
-            if (optional && next.trim() === "") {
-              onValue(null);
-              return;
-            }
-            const parsed = parsePercent(next);
-            if (parsed != null && parsed <= 30) onValue(parsed);
-          }}
-        />
-        <span className="suffix" aria-hidden="true">
-          %
-        </span>
-        {focused ? (
-          <motion.span
-            className="field-mark"
-            initial={reduced ? false : { scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-          />
-        ) : null}
-      </div>
-      {hint ? (
-        <p className="hint" id={hintId}>
-          {hint}
-        </p>
-      ) : null}
+    <input
+      className="range"
+      type="range"
+      min={min}
+      max={max}
+      step={step}
+      value={display}
+      aria-label={label}
+      aria-valuetext={ariaValueText}
+      aria-describedby={describedBy}
+      onPointerDown={(event) => {
+        pointer.current = true;
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }}
+      onPointerUp={() => {
+        pointer.current = false;
+      }}
+      onPointerCancel={() => {
+        pointer.current = false;
+      }}
+      onChange={(event) => {
+        if (pointer.current) jumpRef.current = true;
+        move(Number(event.target.value));
+      }}
+      onKeyDown={onKeyDown}
+    />
+  );
+}
+
+export function Segmented<T extends string>({
+  label,
+  name,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  name: string;
+  value: T;
+  options: { id: T; label: string }[];
+  onChange: (value: T) => void;
+}) {
+  const reduced = useReducedMotion();
+  return (
+    <div className="segment" role="radiogroup" aria-label={label}>
+      {options.map((option) => {
+        const checked = option.id === value;
+        return (
+          <label key={option.id}>
+            <input
+              type="radio"
+              name={name}
+              value={option.id}
+              checked={checked}
+              onChange={() => onChange(option.id)}
+            />
+            {checked ? (
+              <motion.span
+                layoutId={reduced ? undefined : `segment-${name}`}
+                className="segment-mark"
+                transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+              />
+            ) : null}
+            <span className={option.label.includes(" ") ? "segment-text wrap" : "segment-text"}>{option.label}</span>
+          </label>
+        );
+      })}
     </div>
   );
 }
@@ -163,53 +329,28 @@ export function ChoiceGroup<T extends string>({
   value,
   options,
   onChange,
-  hint,
 }: {
   legend: string;
   name: string;
   value: T;
   options: { id: T; label: string }[];
   onChange: (value: T) => void;
-  hint?: string;
 }) {
-  const reduced = useReducedMotion();
-  const hintId = useId();
   return (
-    <fieldset className="group tight">
+    <fieldset className="choices">
       <legend>{legend}</legend>
-      <div className="choices" role="presentation">
-        {options.map((option) => {
-          const checked = option.id === value;
-          return (
-            <label key={option.id}>
-              <input
-                type="radio"
-                name={name}
-                value={option.id}
-                checked={checked}
-                aria-describedby={hint ? hintId : undefined}
-                onChange={() => onChange(option.id)}
-              />
-              <span className="choice-row">
-                {checked ? (
-                  <motion.span
-                    layoutId={reduced ? undefined : `choice-${name}`}
-                    className="choice-mark"
-                    aria-hidden="true"
-                    transition={{ type: "spring", stiffness: 520, damping: 40, mass: 0.7 }}
-                  />
-                ) : null}
-                <span className="choice-text">{option.label}</span>
-              </span>
-            </label>
-          );
-        })}
-      </div>
-      {hint ? (
-        <p className="hint" id={hintId}>
-          {hint}
-        </p>
-      ) : null}
+      {options.map((option) => (
+        <label key={option.id}>
+          <input
+            type="radio"
+            name={name}
+            value={option.id}
+            checked={option.id === value}
+            onChange={() => onChange(option.id)}
+          />
+          <span>{option.label}</span>
+        </label>
+      ))}
     </fieldset>
   );
 }
@@ -219,36 +360,41 @@ export function CheckField({
   label,
   checked,
   onChange,
-  hint,
 }: {
   id: string;
   label: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
-  hint?: string;
 }) {
-  const hintId = hint ? `${id}-hint` : undefined;
   return (
-    <div className="field">
-      <label className="check" htmlFor={id}>
-        <input
-          id={id}
-          type="checkbox"
-          checked={checked}
-          aria-describedby={hintId}
-          onChange={(event) => onChange(event.target.checked)}
-        />
-        <span>{label}</span>
-      </label>
-      {hint ? (
-        <p className="hint" id={hintId}>
-          {hint}
-        </p>
-      ) : null}
-    </div>
+    <label className="check" htmlFor={id}>
+      <input id={id} type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} />
+      <span>{label}</span>
+    </label>
   );
 }
 
-export function FieldNote({ children }: { children: ReactNode }) {
-  return <p className="hint status">{children}</p>;
+export function FieldBlock({
+  label,
+  htmlFor,
+  control,
+  slider,
+  extra,
+}: {
+  label: string;
+  htmlFor: string;
+  control: ReactNode;
+  slider: ReactNode;
+  extra?: ReactNode;
+}) {
+  return (
+    <div className="slider-field">
+      <div className="field-head">
+        <label htmlFor={htmlFor}>{label}</label>
+        {control}
+      </div>
+      {slider}
+      {extra}
+    </div>
+  );
 }

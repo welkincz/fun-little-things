@@ -1,29 +1,24 @@
-import { motion, useReducedMotion } from "motion/react";
+import { useReducedMotion } from "motion/react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { formatCAD, formatCompact } from "../format";
 
 export function BalanceChart({ points }: { points: { year: number; balance: number }[] }) {
   const reduced = useReducedMotion();
+  if (points.length === 0) return null;
   return (
-    <motion.div
-      className="chart"
-      aria-hidden="true"
-      initial={reduced ? false : { clipPath: "inset(0 100% 0 0)" }}
-      animate={{ clipPath: "inset(0 0% 0 0)" }}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
-    >
+    <div className="chart">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
           <XAxis
             dataKey="year"
-            tick={{ fill: "#1c4f3a", fontSize: 13 }}
-            axisLine={{ stroke: "#d5e0da" }}
+            tick={{ fill: "#5C6166", fontSize: 13 }}
+            axisLine={{ stroke: "#E3E3DD" }}
             tickLine={false}
           />
           <YAxis
             tickFormatter={(value: number) => formatCompact(value)}
             width={76}
-            tick={{ fill: "#1c4f3a", fontSize: 13 }}
+            tick={{ fill: "#5C6166", fontSize: 13 }}
             axisLine={false}
             tickLine={false}
           />
@@ -35,14 +30,15 @@ export function BalanceChart({ points }: { points: { year: number; balance: numb
             type="monotone"
             dataKey="balance"
             name="Balance"
-            stroke="#204a86"
+            stroke="#135E4B"
             strokeWidth={2.25}
-            fill="#204a86"
-            fillOpacity={0.14}
+            fill="#135E4B"
+            fillOpacity={0.16}
             isAnimationActive={!reduced}
+            animationDuration={300}
           />
         </AreaChart>
       </ResponsiveContainer>
-    </motion.div>
+    </div>
   );
 }

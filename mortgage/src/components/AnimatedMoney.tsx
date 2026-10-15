@@ -1,24 +1,50 @@
-import { useEffect, useState } from "react";
-import { useReducedMotion, useSpring } from "motion/react";
-import { formatCAD } from "../format";
+import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "motion/react";
+import { formatCAD, formatDollars } from "../format";
 
-export function AnimatedMoney({ value }: { value: number }) {
+export function AnimatedMoney({
+  value,
+  whole = false,
+  jumpRef,
+}: {
+  value: number;
+  whole?: boolean;
+  jumpRef: { current: boolean };
+}) {
   const reduced = useReducedMotion();
-  const spring = useSpring(value, { stiffness: 70, damping: 18, mass: 0.7 });
+  const shownRef = useRef(value);
+  const ready = useRef(false);
   const [shown, setShown] = useState(value);
 
   useEffect(() => {
-    if (reduced) {
+    if (!ready.current) {
+      ready.current = true;
+      shownRef.current = value;
+      setShown(value);
+      jumpRef.current = false;
+      return;
+    }
+    if (reduced || jumpRef.current) {
+      jumpRef.current = false;
+      shownRef.current = value;
       setShown(value);
       return;
     }
-    spring.set(value);
-  }, [reduced, spring, value]);
+    const from = shownRef.current;
+    const to = value;
+    const start = performance.now();
+    let frame = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / 400);
+      const eased = 1 - (1 - t) ** 3;
+      const next = from + (to - from) * eased;
+      shownRef.current = next;
+      setShown(next);
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [jumpRef, reduced, value]);
 
-  useEffect(() => {
-    if (reduced) return;
-    return spring.on("change", (next) => setShown(next));
-  }, [reduced, spring]);
-
-  return <>{formatCAD(reduced ? value : shown)}</>;
+  return <>{whole ? formatDollars(shown) : formatCAD(shown)}</>;
 }

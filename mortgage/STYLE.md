@@ -114,3 +114,89 @@ body { font-feature-settings: "tnum" 1; }
   :root { --dur-fast: 0ms; --dur-base: 120ms; --dur-count: 0ms; }
 }
 ```
+
+## Simplified layout v2 (Oct 14)
+Charlie's feedback: too much text. Goal: understood at a glance, usable in under 1 minute. This section overrides the Layout section above; tokens stay the same.
+
+**What I checked at Wealthsimple (2026-10-14):** `wealthsimple.com/en-ca/tool/mortgage-calculator` returns 404, and their help centre lists only RRSP, TFSA, retirement, and income tax calculators, so there is no Wealthsimple mortgage calculator to copy. What their live calculators show (`/tool/tfsa-calculator`, `/tool/tax-calculator`): a title, one sentence of intro, a short stack of labelled inputs, a frequency choice as plain words (Weekly / Bi-weekly / Monthly / Annually), results as a few label + number pairs, and assumptions pushed below under "Our assumptions". Borrow that restraint, not a specific mortgage UI.
+
+### Above the fold: only this
+1. Title: **Mortgage calculator** (no subtitle paragraph).
+2. Big payment: `$3,542` + `/month` (cents dropped in the hero; full cents in details).
+3. Breakdown line (one line, muted). No insurance: `Principal + interest on $640,000`. With insurance: `Principal + interest on $245,000 · incl. $9,800 CMHC` (premium amount only; detail lives in See details).
+4. Frequency toggle: `Monthly | Bi-weekly | Accel. bi-weekly | Weekly`. Hero suffix changes to `/2 weeks`, `/week`.
+5. Four inputs, each = label + editable number + slider:
+   - `Home price` — $ field, slider $100k–$2M, step $5k.
+   - `Down payment` — $ field **and** % field linked, slider 0–100% of price, step 0.5%.
+   - `Interest rate` — % field, slider 0–10%, step 0.05%.
+   - `Amortization` — `25 yrs`, slider 5–30, step 1 (or segmented 15/20/25/30).
+6. Inline warning (only when triggered, directly under Down payment, `--warning` style): `Minimum down is $55,000.` / `Not insurable at $1.5M+. Need 20% down.`
+7. Link-button: `See details ▾`.
+
+Copy budget: besides input labels and toggle words, visible text ≤ 25 words (title 2 + breakdown ~8 + warning ≤ 8 + "See details" 2).
+
+Inputs: native `<input type="range">` paired with `<input inputmode="decimal">`; both update each other. Arrow keys ±1 step, Shift+Arrow ±10 steps, PageUp/PageDown ±10%. Slider `aria-valuetext="$800,000"`. Number fields commit on blur/Enter and clamp with an inline message, never silently.
+
+### 390px wireframe
+```
+┌──────────────────────────────┐
+│ Mortgage calculator          │
+│                              │
+│ $3,542 /month                │  ← --fs-hero, Fraunces
+│ Principal + interest on $640k│  ← muted, 1 line
+│ [Monthly|Bi-wk|Accel|Weekly] │  ← segmented, scrolls if needed
+├──────────────────────────────┤
+│ Home price        [$800,000] │
+│ ●━━━━━━━━━━━━━━━━○───────────│
+│ Down payment [$160,000][20%] │
+│ ●━━━━━━○─────────────────────│
+│ ⚠ Minimum down is $55,000.  │  ← only if below
+│ Interest rate        [4.79%] │
+│ ●━━━━━━━━━━━○────────────────│
+│ Amortization         [25 yrs]│
+│ ●━━━━━━━━━━━━━━━━━━━○────────│
+│                              │
+│ See details ▾                │
+└──────────────────────────────┘
+```
+Fits in ~780px; the payment stays visible while dragging the first inputs. Once scrolled past, show the 56px sticky bar `$3,542/mo` from v1.
+
+### Desktop (≥960px) wireframe
+```
+┌───────────────────────────────────────────────────────────────┐
+│ Mortgage calculator                                           │
+│                                                               │
+│ Home price                 [$800,000] │  $3,542 /month        │
+│ ●━━━━━━━━━━━━━━━━━━━━○─────────────── │  P+I on $640,000       │
+│ Down payment       [$160,000] [20%]   │                        │
+│ ●━━━━━━━○──────────────────────────── │  [Monthly|Bi-weekly|   │
+│ Interest rate                 [4.79%] │   Accel.|Weekly]       │
+│ ●━━━━━━━━━━━━○─────────────────────── │                        │
+│ Amortization                 [25 yrs] │                        │
+│ ●━━━━━━━━━━━━━━━━━━━━━━○───────────── │                        │
+│                                                               │
+│ See details ▾                                                 │
+└───────────────────────────────────────────────────────────────┘
+```
+Inputs 7/12 left, result 5/12 right, sticky. Max width 960px (narrower than v1's 1080px).
+
+### Inside "See details" (collapsed `<details>` accordions, all closed by default)
+- `Mortgage insurance (CMHC)` — premium %, amount, why.
+- `Land transfer tax`
+- `Cash to close`
+- `Can I qualify?` — stress test / income estimate.
+- `At renewal`
+- `Payment breakdown chart`
+- `Year-by-year`
+- `How we calculate` — "Canadian semi-annual compounding. Estimates only." moves here.
+- `Share this scenario` — copy-link button.
+
+### Delete or move
+- **Delete:** intro/explainer paragraphs above the inputs; helper text under every input; any mortgage-amount sentence except the one breakdown line; any repeated payment number outside the hero; tooltips that restate labels.
+- **Move into details:** CMHC notice paragraph (keep only the one-line inline warning), principal/interest/total-interest breakdown rows, chart, amortization table, footnote, share button.
+- **Speed:** payment tween stays ≤ 400ms (v1 rule); during slider drag, update instantly with no tween.
+
+### Acceptance (matches DailyTester's plan)
+- A first-time user changes all four inputs and reads the payment in < 60s on 390px and desktop.
+- Regression numbers unchanged: $800k, 20% down, 25 yrs → $3,542.23 (details shows cents); min down $55k → $4,288.31.
+- Below-minimum warning visible on the first screen without opening details.

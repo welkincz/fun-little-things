@@ -25,6 +25,12 @@ export function formatWhole(value: number): string {
   return whole.format(value);
 }
 
+/** Hero and breakdown dollars, cents dropped. */
+export function formatDollars(value: number): string {
+  if (!Number.isFinite(value)) return "Unavailable";
+  return whole.format(value);
+}
+
 export function formatGrouped(value: number): string {
   return grouped.format(value);
 }
