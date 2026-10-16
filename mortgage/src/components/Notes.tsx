@@ -1,4 +1,4 @@
-import { formatDollars, formatGrouped, formatRate } from "../format";
+import { formatDollars, formatDownPercent, formatGrouped, formatRate } from "../format";
 import { parseAmount, parsePercent } from "../lib/mortgage/money";
 import type { CalculatorInput, Scenario } from "../lib/mortgage/scenario";
 import { DecimalField, FieldBlock, RangeControl } from "./Fields";
@@ -112,9 +112,7 @@ export function Notes({
             <DecimalField
               id="down-percent"
               value={percent}
-              format={(value) =>
-                new Intl.NumberFormat("en-CA", { maximumFractionDigits: 4 }).format(value)
-              }
+              format={formatDownPercent}
               parse={parsePercent}
               min={0}
               max={100}

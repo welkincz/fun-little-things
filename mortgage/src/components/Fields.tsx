@@ -53,7 +53,13 @@ export function DecimalField({
   }, [valueText]);
 
   function commit(raw: string) {
+    const edited = dirty.current;
     dirty.current = false;
+    // A lossy display (6.875 shown as 6.9) must not be parsed back on blur.
+    if (!edited) {
+      setText(valueText);
+      return;
+    }
     if (optional && raw.trim() === "") {
       setNote(null);
       setText("");
@@ -262,15 +268,15 @@ export function RangeControl({
       aria-label={label}
       aria-valuetext={ariaValueText}
       aria-describedby={describedBy}
-      onPointerDown={(event) => {
+      onPointerDown={() => {
         pointer.current = true;
-        event.currentTarget.setPointerCapture(event.pointerId);
-      }}
-      onPointerUp={() => {
-        pointer.current = false;
-      }}
-      onPointerCancel={() => {
-        pointer.current = false;
+        const end = () => {
+          pointer.current = false;
+          window.removeEventListener("pointerup", end);
+          window.removeEventListener("pointercancel", end);
+        };
+        window.addEventListener("pointerup", end);
+        window.addEventListener("pointercancel", end);
       }}
       onChange={(event) => {
         if (pointer.current) jumpRef.current = true;
@@ -291,7 +297,7 @@ export function Segmented<T extends string>({
   label: string;
   name: string;
   value: T;
-  options: { id: T; label: string }[];
+  options: { id: T; label: string; title?: string }[];
   onChange: (value: T) => void;
 }) {
   const reduced = useReducedMotion();
@@ -299,13 +305,15 @@ export function Segmented<T extends string>({
     <div className="segment" role="radiogroup" aria-label={label}>
       {options.map((option) => {
         const checked = option.id === value;
+        const nameText = option.title ?? option.label;
         return (
-          <label key={option.id}>
+          <label key={option.id} title={option.title}>
             <input
               type="radio"
               name={name}
               value={option.id}
               checked={checked}
+              aria-label={nameText}
               onChange={() => onChange(option.id)}
             />
             {checked ? (
@@ -315,7 +323,7 @@ export function Segmented<T extends string>({
                 transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
               />
             ) : null}
-            <span className={option.label.includes(" ") ? "segment-text wrap" : "segment-text"}>{option.label}</span>
+            <span className="segment-text">{option.label}</span>
           </label>
         );
       })}
