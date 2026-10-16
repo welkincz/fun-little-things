@@ -42,6 +42,14 @@ export function formatRate(percent: number): string {
   }).format(percent);
 }
 
+/** Down-payment percent shown in the narrow field. One decimal; dollars stay exact. */
+export function formatDownPercent(percent: number): string {
+  return new Intl.NumberFormat("en-CA", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(percent);
+}
+
 export function formatRatio(rate: number): string {
   return new Intl.NumberFormat("en-CA", {
     style: "percent",

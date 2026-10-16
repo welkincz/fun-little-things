@@ -178,13 +178,13 @@ h1 {
 
 .segment label {
   position: relative;
-  flex: 1 1 0;
-  min-width: 4.5rem;
+  flex: 1 1 auto;
+  min-width: max-content;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 44px;
-  padding: 8px 8px;
+  padding: 8px 10px;
   cursor: pointer;
   text-align: center;
 }
@@ -215,8 +215,6 @@ h1 {
   color: var(--muted);
   white-space: nowrap;
 }
-
-.segment-text.wrap { white-space: normal; }
 
 .segment input:checked ~ .segment-text {
   color: var(--primary);
@@ -551,6 +549,15 @@ td { font-weight: 400; }
 .figure { text-align: right; }
 
 .chart { height: 240px; margin-top: var(--s-4); }
+
+/* Recharts leaves the last measured tick (the $0 axis label) in a body span. */
+#recharts_measurement_span {
+  position: absolute !important;
+  top: -20000px !important;
+  left: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
 
 .sources {
   list-style: none;

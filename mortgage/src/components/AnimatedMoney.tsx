@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
 import { formatCAD, formatDollars } from "../format";
 
@@ -16,7 +16,7 @@ export function AnimatedMoney({
   const ready = useRef(false);
   const [shown, setShown] = useState(value);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!ready.current) {
       ready.current = true;
       shownRef.current = value;

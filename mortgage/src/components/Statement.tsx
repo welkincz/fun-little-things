@@ -15,16 +15,16 @@ import { AnimatedMoney } from "./AnimatedMoney";
 import { BalanceChart } from "./BalanceChart";
 import { AmountField, CheckField, ChoiceGroup, RateField, Segmented } from "./Fields";
 
-const FREQUENCIES: { id: FrequencyId; label: string }[] = [
+const FREQUENCIES: { id: FrequencyId; label: string; title?: string }[] = [
   { id: "monthly", label: "Monthly" },
   { id: "biweekly", label: "Bi-weekly" },
-  { id: "accel-biweekly", label: "Accel. bi-weekly" },
+  { id: "accel-biweekly", label: "Accel.", title: "Accelerated bi-weekly" },
   { id: "weekly", label: "Weekly" },
 ];
 
-const EXTRA_FREQUENCY: Partial<Record<FrequencyId, string>> = {
-  semimonthly: "Semi-monthly",
-  "accel-weekly": "Accel. weekly",
+const EXTRA_FREQUENCY: Partial<Record<FrequencyId, { label: string; title: string }>> = {
+  semimonthly: { label: "Semi-monthly", title: "Semi-monthly" },
+  "accel-weekly": { label: "Accel. wk", title: "Accelerated weekly" },
 };
 
 const locations = [
@@ -105,9 +105,17 @@ export function ResultHero({
   const spoken =
     result.payment == null ? "Payment unavailable" : `${formatCAD(result.payment)} ${affix.hero}`;
   const [live, setLive] = useState(spoken);
+  const extra = EXTRA_FREQUENCY[input.frequency];
   const options = FREQUENCIES.some((item) => item.id === input.frequency)
     ? FREQUENCIES
-    : [...FREQUENCIES, { id: input.frequency, label: EXTRA_FREQUENCY[input.frequency] ?? input.frequency }];
+    : [
+        ...FREQUENCIES,
+        {
+          id: input.frequency,
+          label: extra?.label ?? input.frequency,
+          title: extra?.title,
+        },
+      ];
 
   useEffect(() => {
     const id = window.setTimeout(() => setLive(spoken), 200);
