@@ -5,7 +5,7 @@ Small, fun web tools shipped one day at a time. Each tool is its own tiny site, 
 ## Fun little things
 
 - **[Drum Kit](https://fun-drumkit.pages.dev)** — A seven-piece kit you play with the keyboard or a click.
-- **[Mortgage](https://fun-mortgage.pages.dev)** — A Canadian mortgage calculator: payment, cash to close, stress test, and renewal.
+- **[Mortgage](https://charliebuild.com/tools/mortgage/)** — A Canadian mortgage calculator: payment, cash to close, stress test, and renewal. [fun-mortgage.pages.dev](https://fun-mortgage.pages.dev) is the legacy address until it redirects.
 
 Drum Kit rebuilds [04_DrumKit](https://github.com/welkincz/04_DrumKit) (`master`, which has the sounds and drum photos).
 
