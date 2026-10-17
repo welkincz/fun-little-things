@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && tsc -p worker --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
-    "deploy:worker": "npm run build && wrangler deploy"
+    "deploy:worker": "npm run build && wrangler deploy",
+    "deploy:pages-redirect": "wrangler pages deploy redirect-pages --project-name fun-mortgage --branch main"
   },
   "dependencies": {
     "motion": "^12.23.22",

@@ -29,6 +29,14 @@ That runs `npm run build` and then `wrangler deploy`. Config is `mortgage/wrangl
 
 The Worker is attached with the zone route `charliebuild.com/tools/mortgage*` and `zone_name` `charliebuild.com`. The zone has to be on the same Cloudflare account as the Worker. A zone route runs in front of the existing `charliebuild` Worker (the Workers Custom Domain on the apex), so this Worker takes only those paths and the rest of charliebuild.com stays where it is. `workers_dev` is off.
 
-`https://fun-mortgage.pages.dev` keeps working until a later change redirects it. This deploy does not add that redirect.
+### Legacy address
+
+`https://fun-mortgage.pages.dev` now only redirects. `mortgage/redirect-pages/` holds a single `_redirects` file that sends every path to `https://charliebuild.com/tools/mortgage/<path>` with a 301. Pages keeps the query string, so `/?p=800000&d=160000` lands on `https://charliebuild.com/tools/mortgage/?p=800000&d=160000`. From `mortgage/`:
+
+```sh
+CLOUDFLARE_ACCOUNT_ID=<account id> npm run deploy:pages-redirect
+```
+
+That deploys `redirect-pages` to the Pages project `fun-mortgage` on `main`. Keep `_redirects` out of `mortgage/dist`: the Worker serves `dist`, and a redirect there would loop.
 
 From the repo root, `npm run build` installs and builds every tool the same way.
