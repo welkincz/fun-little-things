@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && tsc -p worker --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
+    "og": "node scripts/render-og.mjs",
     "deploy:worker": "npm run build && wrangler deploy",
     "deploy:pages-redirect": "wrangler pages deploy redirect-pages --project-name fun-mortgage --branch main"
   },

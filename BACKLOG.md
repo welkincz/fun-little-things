@@ -87,3 +87,7 @@ Rent, rent growth, price, down payment, rate, property tax, and a maintenance pe
 ## 15. Private PDF merge
 
 Merge, reorder, and rotate PDFs in the browser with pdf-lib. Nothing is uploaded. The market is crowded. Build it only as a showcase.
+
+## Done
+
+- **Mortgage og.png v2.** `mortgage/public/og.png` (1200×627) says “Canadian mortgage calculator” in Fraunces, with `$800k · 20% down · 25 yr`, and shows the $3,542 payment once in the result card. Regenerate with `npm run og` from `mortgage/`.

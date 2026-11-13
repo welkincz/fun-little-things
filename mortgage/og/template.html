@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en-CA">
+  <head>
+    <meta charset="utf-8" />
+    <title>Canadian mortgage calculator — share image</title>
+    <!--
+      Fraunces and Inter latin variable subsets (SIL Open Font License).
+      Same families as the app: Fraunces for display, Inter for UI.
+      Source: fonts.gstatic.com, pinned in scripts/render-og.mjs.
+    -->
+    <style>
+      @font-face {
+        font-family: Fraunces;
+        src: url("./fonts/Fraunces-latin.woff2") format("woff2");
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: block;
+      }
+
+      @font-face {
+        font-family: Inter;
+        src: url("./fonts/Inter-latin.woff2") format("woff2");
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: block;
+      }
+
+      :root {
+        --bg: #f7f7f4;
+        --surface: #ffffff;
+        --surface-tint: #e7f1ec;
+        --text: #1a1d1f;
+        --muted: #5c6166;
+        --line: #e3e3dd;
+        --primary: #135e4b;
+        --shadow-card: 0 1px 2px rgb(26 29 31 / 0.04), 0 4px 16px rgb(26 29 31 / 0.06);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        width: 1200px;
+        height: 627px;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      body {
+        font-family: Inter, system-ui, sans-serif;
+        font-feature-settings: "tnum" 1;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: geometricPrecision;
+      }
+
+      .frame {
+        width: 1200px;
+        height: 627px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 56px 68px 56px 76px;
+        gap: 48px;
+      }
+
+      .copy {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      h1 {
+        font-family: Fraunces, Georgia, "Times New Roman", serif;
+        font-weight: 500;
+        font-optical-sizing: auto;
+        font-size: 108px;
+        line-height: 0.78;
+        letter-spacing: -0.03em;
+        font-synthesis: none;
+      }
+
+      h1 span {
+        display: block;
+      }
+
+      /* Fraunces keeps a deep descender box. Tighten the empty box under
+         "Canadian", then give "mortgage" its own room so the g clears. */
+      h1 .descender {
+        margin-top: -0.1em;
+        margin-bottom: 0.36em;
+      }
+
+      .scenario {
+        margin-top: 36px;
+        font-weight: 500;
+        font-size: 26px;
+        line-height: 1.3;
+        letter-spacing: -0.011em;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums lining-nums;
+      }
+
+      .card {
+        flex: 0 0 448px;
+        width: 448px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: var(--shadow-card);
+        padding: 36px 28px 28px;
+      }
+
+      .pay {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+      }
+
+      .figure {
+        font-family: Fraunces, Georgia, "Times New Roman", serif;
+        font-weight: 500;
+        font-optical-sizing: auto;
+        font-size: 58px;
+        line-height: 1;
+        letter-spacing: -0.03em;
+        font-variant-numeric: tabular-nums lining-nums;
+        font-synthesis: none;
+      }
+
+      .suffix {
+        font-weight: 500;
+        font-size: 22px;
+        color: var(--muted);
+      }
+
+      .breakdown {
+        margin-top: 12px;
+        font-size: 15px;
+        line-height: 1.4;
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .segment {
+        display: flex;
+        gap: 2px;
+        margin-top: 28px;
+        padding: 4px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+      }
+
+      .segment span {
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 8px 4px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 1.2;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      .segment .on {
+        background: var(--surface-tint);
+        color: var(--primary);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="frame">
+      <div class="copy">
+        <h1><span>Canadian</span><span class="descender">mortgage</span><span>calculator</span></h1>
+        <p class="scenario">$800k · 20% down · 25 yr</p>
+      </div>
+      <aside class="card" aria-label="Monthly payment">
+        <p class="pay">
+          <span class="figure">$3,542</span>
+          <span class="suffix">/month</span>
+        </p>
+        <p class="breakdown">Principal + interest on $640,000</p>
+        <div class="segment">
+          <span class="on">Monthly</span>
+          <span>Bi-weekly</span>
+          <span>Accel.</span>
+          <span>Weekly</span>
+        </div>
+      </aside>
+    </div>
+  </body>
+</html>
