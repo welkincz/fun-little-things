@@ -6,7 +6,7 @@ import { calculate, type CalculatorInput } from "./lib/mortgage/scenario";
 import { parseSearch, serialize } from "./lib/mortgage/url";
 import { formatDollars } from "./format";
 import { Notes } from "./components/Notes";
-import { frequencyAffix, ResultHero, ScenarioDetails } from "./components/Statement";
+import { frequencyAffix, prefetchBalanceChart, ResultHero, ScenarioDetails } from "./components/Statement";
 
 const INVALID_LINK = "Some details in the link could not be read, so those fields use the example.";
 
@@ -140,6 +140,8 @@ export function App() {
           data-testid="see-details"
           aria-expanded={detailsOpen}
           aria-controls="scenario-details"
+          onMouseEnter={prefetchBalanceChart}
+          onFocus={prefetchBalanceChart}
           onClick={() => setDetailsOpen((open) => !open)}
         >
           See details {detailsOpen ? "▴" : "▾"}
