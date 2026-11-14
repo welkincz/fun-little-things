@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   formatCAD,
@@ -12,8 +12,18 @@ import type { FrequencyId } from "../lib/mortgage/payment";
 import { ruleList, RULES_CHECKED } from "../lib/mortgage/rules";
 import type { CalculatorInput, Scenario } from "../lib/mortgage/scenario";
 import { AnimatedMoney } from "./AnimatedMoney";
-import { BalanceChart } from "./BalanceChart";
 import { AmountField, CheckField, ChoiceGroup, RateField, Segmented } from "./Fields";
+
+const loadBalanceChart = () => import("./BalanceChart").then((mod) => ({ default: mod.BalanceChart }));
+
+let balanceChartLoad: ReturnType<typeof loadBalanceChart> | undefined;
+
+/** Start the chart chunk before the details panel mounts. */
+export function prefetchBalanceChart(): void {
+  balanceChartLoad ??= loadBalanceChart();
+}
+
+const BalanceChart = lazy(() => (balanceChartLoad ??= loadBalanceChart()));
 
 const FREQUENCIES: { id: FrequencyId; label: string; title?: string }[] = [
   { id: "monthly", label: "Monthly" },
@@ -666,7 +676,9 @@ function Breakdown({ result }: { result: Scenario }) {
                 <strong>{formatCAD(interest)}</strong>
               </li>
             </ul>
-            <BalanceChart points={result.chart} />
+            <Suspense fallback={<div className="chart" aria-hidden="true" />}>
+              <BalanceChart points={result.chart} />
+            </Suspense>
           </>
         )}
       </div>
