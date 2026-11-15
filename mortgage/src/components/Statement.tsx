@@ -694,7 +694,7 @@ function YearByYear({ result }: { result: Scenario }) {
         {result.years.length === 0 ? (
           <p>The year-by-year table appears once the down payment is allowed.</p>
         ) : (
-          <div className="table-wrap">
+          <div className="table-wrap" tabIndex={0} aria-label="Year-by-year schedule">
             <table>
               <caption>Balance, principal, and interest at the end of each year.</caption>
               <thead>
