@@ -8,6 +8,7 @@ import {
   formatRatio,
   formatYears,
 } from "../format";
+import { accelerationVersusMonthly, formatAccelerationSavings } from "../lib/mortgage/acceleration";
 import type { FrequencyId } from "../lib/mortgage/payment";
 import { ruleList, RULES_CHECKED } from "../lib/mortgage/rules";
 import type { CalculatorInput, Scenario } from "../lib/mortgage/scenario";
@@ -99,6 +100,35 @@ function amortNote(result: Scenario): string | null {
   return null;
 }
 
+function accelerationLine(input: CalculatorInput, result: Scenario): string | null {
+  if (result.blocked || result.payment == null || !(result.loan > 0)) return null;
+  const savings = accelerationVersusMonthly({
+    loan: result.loan,
+    annualRate: input.ratePercent / 100,
+    amortYears: result.amortUsed,
+    frequency: input.frequency,
+    compounding: result.compounding,
+  });
+  return savings ? formatAccelerationSavings(savings) : null;
+}
+
+function SoonerLine({ text }: { text: string }) {
+  const dot = text.indexOf(" · ");
+  const lead = dot === -1 ? text : `${text.slice(0, dot)} ·`;
+  const rest = dot === -1 ? null : text.slice(dot + 3);
+  return (
+    <p className="sooner" data-testid="accel-savings">
+      <span>{lead}</span>
+      {rest ? (
+        <>
+          {" "}
+          <span>{rest}</span>
+        </>
+      ) : null}
+    </p>
+  );
+}
+
 export function ResultHero({
   input,
   result,
@@ -112,8 +142,13 @@ export function ResultHero({
 }) {
   const affix = frequencyAffix(input.frequency);
   const line = breakdownLine(result);
+  const sooner = accelerationLine(input, result);
   const spoken =
-    result.payment == null ? "Payment unavailable" : `${formatCAD(result.payment)} ${affix.hero}`;
+    result.payment == null
+      ? "Payment unavailable"
+      : sooner
+        ? `${formatCAD(result.payment)} ${affix.hero}. ${sooner}`
+        : `${formatCAD(result.payment)} ${affix.hero}`;
   const [live, setLive] = useState(spoken);
   const extra = EXTRA_FREQUENCY[input.frequency];
   const options = FREQUENCIES.some((item) => item.id === input.frequency)
@@ -156,6 +191,7 @@ export function ResultHero({
           {line}
         </p>
       ) : null}
+      {sooner ? <SoonerLine text={sooner} /> : null}
       <Segmented
         label="Payment frequency"
         name="frequency"

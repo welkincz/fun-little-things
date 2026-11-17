@@ -90,4 +90,5 @@ Merge, reorder, and rotate PDFs in the browser with pdf-lib. Nothing is uploaded
 
 ## Done
 
+- **Accelerated payoff.** Accel. bi-weekly and accelerated weekly show how many years and months sooner the mortgage is paid off, and the interest saved versus monthly, on the same loan.
 - **Mortgage og.png v2.** `mortgage/public/og.png` (1200×627) says “Canadian mortgage calculator” in Fraunces, with `$800k · 20% down · 25 yr`, and shows the $3,542 payment once in the result card. Regenerate with `npm run og` from `mortgage/`.

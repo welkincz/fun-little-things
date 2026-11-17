@@ -163,6 +163,18 @@ h1 {
   line-height: 1.4;
 }
 
+.breakdown:has(+ .sooner) { margin-bottom: var(--s-2); }
+
+.sooner {
+  margin: 0 0 var(--s-4);
+  color: var(--muted);
+  font-size: var(--fs-sm);
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+
+.sooner span { white-space: nowrap; }
+
 .segment {
   display: flex;
   gap: 2px;
