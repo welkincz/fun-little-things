@@ -583,6 +583,16 @@ th, td {
 td { font-weight: 400; }
 .figure { text-align: right; }
 
+.renewal-table table {
+  width: max-content;
+  min-width: 100%;
+}
+
+.renewal-table th,
+.renewal-table td {
+  white-space: nowrap;
+}
+
 .chart { height: 240px; margin-top: var(--s-4); }
 
 /* Recharts leaves the last measured tick (the $0 axis label) in a body span. */

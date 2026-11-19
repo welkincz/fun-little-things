@@ -44,10 +44,6 @@ A standalone calculator that reuses the mortgage `rules.ts` brackets.
 
 Price, location, property type, and first-time buyer. Show Ontario land transfer tax, Toronto municipal land transfer tax, the rebates, and the net. The Toronto brackets are the April 1, 2026 rates.
 
-## 5. Mortgage renewal shock
-
-Balance, years left, and the old and new rates. Show the new payment, the change, and what happens if the amortization is extended to keep the payment flat.
-
 ## 6. Minimum down payment and insurability
 
 Price in, then the minimum down payment, the CMHC tier, whether the mortgage is insurable, and whether 30 years is available. The insured cap is $1,500,000, not $1,000,000.
@@ -90,5 +86,6 @@ Merge, reorder, and rotate PDFs in the browser with pdf-lib. Nothing is uploaded
 
 ## Done
 
+- **Mortgage renewal shock.** Renewal shock is now part of the mortgage calculator.
 - **Accelerated payoff.** Accel. bi-weekly and accelerated weekly show how many years and months sooner the mortgage is paid off, and the interest saved versus monthly, on the same loan.
 - **Mortgage og.png v2.** `mortgage/public/og.png` (1200×627) says “Canadian mortgage calculator” in Fraunces, with `$800k · 20% down · 25 yr`, and shows the $3,542 payment once in the result card. Regenerate with `npm run og` from `mortgage/`.

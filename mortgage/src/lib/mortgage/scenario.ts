@@ -258,6 +258,7 @@ export function calculate(input: CalculatorInput): Scenario {
         yearsLeft,
         frequency: input.frequency,
         compounding,
+        currentPayment: quote.rounded,
         currentMonthly: monthlyEquivalent(quote.rounded, input.frequency),
         customPercent: input.renewalCustomPercent,
       });

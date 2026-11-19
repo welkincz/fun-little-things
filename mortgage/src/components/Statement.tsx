@@ -576,6 +576,27 @@ function Qualify({ result }: { result: Scenario }) {
   );
 }
 
+function formatAmortization(years: number, months: number): string {
+  const parts = [years > 0 ? `${years} yr` : "", months > 0 ? `${months} mo` : ""].filter(Boolean);
+  return parts.join(" ") || "0 mo";
+}
+
+/** Remaining term when the payment does not rise; otherwise the extension that holds it. */
+function keepPaymentText(
+  row: { payment: number; flatYears: number | null; flatMonths: number | null },
+  currentPayment: number,
+  yearsLeft: number,
+): string {
+  if (!(row.payment > currentPayment)) {
+    const totalMonths = Math.max(0, Math.round(yearsLeft * 12));
+    return `${formatAmortization(Math.floor(totalMonths / 12), totalMonths % 12)} left`;
+  }
+  if (row.flatYears == null || row.flatMonths == null) {
+    return "Not possible, payment does not cover interest";
+  }
+  return formatAmortization(row.flatYears, row.flatMonths);
+}
+
 function Renewal({
   input,
   result,
@@ -635,7 +656,7 @@ function Renewal({
               {formatYears(result.yearsLeft ?? 0)} years left. The same rate can still change the payment, because the
               balance and the years remaining are both smaller.
             </p>
-            <div className="table-wrap">
+            <div className="table-wrap renewal-table" tabIndex={0} aria-label="Renewal payments">
               <table>
                 <caption>Renewal payment at the same rate, one point higher, and two points higher.</caption>
                 <thead>
@@ -647,6 +668,9 @@ function Renewal({
                     <th scope="col" className="figure">
                       Change per month
                     </th>
+                    <th scope="col" className="figure">
+                      Keep payment
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -657,11 +681,15 @@ function Renewal({
                       </th>
                       <td className="figure">{formatCAD(row.payment)}</td>
                       <td className="figure">{formatDelta(row.deltaMonthly)}</td>
+                      <td className="figure">
+                        {keepPaymentText(row, result.payment ?? 0, result.yearsLeft ?? 0)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
+            <p>Extending the amortization at renewal needs the lender to agree.</p>
           </>
         )}
       </div>
