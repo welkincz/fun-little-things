@@ -38,20 +38,6 @@ Use the CRA worked examples as one-click demos and as tests. Keep the numbers in
 
 Source to follow: the CRA page "When to register for and start charging the GST/HST".
 
-## 4. Ontario and Toronto land transfer tax
-
-A standalone calculator that reuses the mortgage `rules.ts` brackets.
-
-Price, location, property type, and first-time buyer. Show Ontario land transfer tax, Toronto municipal land transfer tax, the rebates, and the net. The Toronto brackets are the April 1, 2026 rates.
-
-## 6. Minimum down payment and insurability
-
-Price in, then the minimum down payment, the CMHC tier, whether the mortgage is insurable, and whether 30 years is available. The insured cap is $1,500,000, not $1,000,000.
-
-## 7. CMHC premium and sales tax
-
-Price, down payment, and amortization. Show the premium percent, the premium in dollars, and the Ontario sales tax due in cash.
-
 ## 8. FHSA, RRSP, or TFSA first
 
 An interactive order for someone saving, using a marginal tax rate they enter. Verify the FHSA annual and lifetime limits on canada.ca before building. Those limits were not verified in the research.
@@ -86,6 +72,10 @@ Merge, reorder, and rotate PDFs in the browser with pdf-lib. Nothing is uploaded
 
 ## Done
 
+- **Yearly lump sum.** One extra payment a year shows how much sooner the mortgage is paid off, and the interest saved.
+- **Ontario and Toronto land transfer tax.** Already covered inside the mortgage calculator.
+- **Minimum down payment and insurability.** Already covered inside the mortgage calculator.
+- **CMHC premium and sales tax.** Already covered inside the mortgage calculator.
 - **Mortgage renewal shock.** Renewal shock is now part of the mortgage calculator.
 - **Accelerated payoff.** Accel. bi-weekly and accelerated weekly show how many years and months sooner the mortgage is paid off, and the interest saved versus monthly, on the same loan.
 - **Mortgage og.png v2.** `mortgage/public/og.png` (1200×627) says “Canadian mortgage calculator” in Fraunces, with `$800k · 20% down · 25 yr`, and shows the $3,542 payment once in the result card. Regenerate with `npm run og` from `mortgage/`.

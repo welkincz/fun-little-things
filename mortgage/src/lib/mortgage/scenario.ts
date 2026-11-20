@@ -43,6 +43,7 @@ export type CalculatorInput = {
   revolving: number | null;
   otherClosing: number | null;
   renewalCustomPercent: number | null;
+  lumpSum: number;
 };
 
 export type BlockCode = "price" | "down-min" | "down-high" | "not-insurable";
@@ -112,6 +113,7 @@ export function defaultInput(): CalculatorInput {
     revolving: null,
     otherClosing: null,
     renewalCustomPercent: null,
+    lumpSum: 0,
   };
 }
 

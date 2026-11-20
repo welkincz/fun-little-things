@@ -32,6 +32,7 @@ const KNOWN = new Set([
   "rev",
   "occ",
   "rr",
+  "ls",
 ]);
 
 function flag(value: string | null, fallback: boolean, invalid: { current: boolean }): boolean {
@@ -77,6 +78,7 @@ export function serialize(input: CalculatorInput): string {
   if (input.revolving != null) params.set("rev", String(input.revolving));
   if (input.otherClosing != null) params.set("occ", String(input.otherClosing));
   if (input.renewalCustomPercent != null) params.set("rr", String(input.renewalCustomPercent));
+  if (input.lumpSum > 0) params.set("ls", String(input.lumpSum));
   return `?${params.toString()}`;
 }
 
@@ -166,6 +168,7 @@ export function parseSearch(search: string): { input: CalculatorInput; invalid: 
     ["rev", "revolving"],
     ["occ", "otherClosing"],
     ["rr", "renewalCustomPercent"],
+    ["ls", "lumpSum"],
   ] as const;
   for (const [key, field] of optional) {
     if (!params.has(key)) continue;

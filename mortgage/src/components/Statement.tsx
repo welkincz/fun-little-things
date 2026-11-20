@@ -9,6 +9,7 @@ import {
   formatYears,
 } from "../format";
 import { accelerationVersusMonthly, formatAccelerationSavings } from "../lib/mortgage/acceleration";
+import { formatYearlyLumpSum, yearlyLumpSum } from "../lib/mortgage/lump";
 import type { FrequencyId } from "../lib/mortgage/payment";
 import { ruleList, RULES_CHECKED } from "../lib/mortgage/rules";
 import type { CalculatorInput, Scenario } from "../lib/mortgage/scenario";
@@ -110,6 +111,19 @@ function accelerationLine(input: CalculatorInput, result: Scenario): string | nu
     compounding: result.compounding,
   });
   return savings ? formatAccelerationSavings(savings) : null;
+}
+
+function lumpLine(input: CalculatorInput, result: Scenario): string | null {
+  if (result.blocked || result.payment == null || !(result.loan > 0) || !(input.lumpSum > 0)) return null;
+  const savings = yearlyLumpSum({
+    loan: result.loan,
+    annualRate: input.ratePercent / 100,
+    amortYears: result.amortUsed,
+    frequency: input.frequency,
+    compounding: result.compounding,
+    lumpSum: input.lumpSum,
+  });
+  return savings ? formatYearlyLumpSum(savings) : null;
 }
 
 function SoonerLine({ text }: { text: string }) {
@@ -216,8 +230,21 @@ export function ScenarioDetails({
   onChange: (patch: Partial<CalculatorInput>) => void;
   onCopy: () => void;
 }) {
+  const sooner = lumpLine(input, result);
   return (
     <div className="details" id="scenario-details">
+      <AmountField
+        id="lump-sum"
+        label="Yearly lump sum"
+        value={input.lumpSum}
+        onValue={(lumpSum) => onChange({ lumpSum: lumpSum ?? 0 })}
+      />
+      <p className="breakdown">Most mortgages limit yearly prepayments. Check your lender's limit.</p>
+      {sooner ? (
+        <p className="sooner" data-testid="lump-savings">
+          {sooner}
+        </p>
+      ) : null}
       <Insurance input={input} result={result} onChange={onChange} />
       <LandTransfer input={input} result={result} onChange={onChange} />
       <CashToClose input={input} result={result} onChange={onChange} />
