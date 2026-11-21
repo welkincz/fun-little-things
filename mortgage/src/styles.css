@@ -175,6 +175,31 @@ h1 {
 
 .sooner span { white-space: nowrap; }
 
+.compare { min-width: 0; }
+
+.compare-label {
+  margin: var(--s-4) 0 0;
+  font-weight: 600;
+}
+
+.compare .segment { margin-top: var(--s-3); }
+
+.compare .segment label {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.compare .segment-text { white-space: normal; }
+
+.compare .verdict {
+  margin: var(--s-3) 0 0;
+  font-weight: 600;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+
+.compare .stats strong { white-space: nowrap; }
+
 .segment {
   display: flex;
   gap: 2px;

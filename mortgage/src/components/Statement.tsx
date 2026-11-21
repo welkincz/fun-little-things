@@ -5,11 +5,18 @@ import {
   formatDelta,
   formatDollars,
   formatPercentPoints,
+  formatRate,
   formatRatio,
   formatYears,
 } from "../format";
 import { accelerationVersusMonthly, formatAccelerationSavings } from "../lib/mortgage/acceleration";
-import { formatYearlyLumpSum, yearlyLumpSum } from "../lib/mortgage/lump";
+import {
+  formatPrepayOrInvest,
+  formatYearlyLumpSum,
+  prepayOrInvest,
+  yearlyLumpSum,
+  type PrepayOrInvest,
+} from "../lib/mortgage/lump";
 import type { FrequencyId } from "../lib/mortgage/payment";
 import { ruleList, RULES_CHECKED } from "../lib/mortgage/rules";
 import type { CalculatorInput, Scenario } from "../lib/mortgage/scenario";
@@ -245,6 +252,7 @@ export function ScenarioDetails({
           {sooner}
         </p>
       ) : null}
+      <InvestCompare input={input} result={result} onChange={onChange} />
       <Insurance input={input} result={result} onChange={onChange} />
       <LandTransfer input={input} result={result} onChange={onChange} />
       <CashToClose input={input} result={result} onChange={onChange} />
@@ -267,6 +275,97 @@ export function ScenarioDetails({
 
 function withheld(result: Scenario): boolean {
   return result.blocked != null || result.payment == null;
+}
+
+function investComparison(input: CalculatorInput, result: Scenario): PrepayOrInvest | null {
+  if (result.blocked || result.payment == null || !(result.loan > 0) || !(input.lumpSum > 0)) return null;
+  if (input.investReturnPercent == null) return null;
+  if (input.investAccount === "taxable" && input.marginalTaxPercent == null) return null;
+  return prepayOrInvest({
+    loan: result.loan,
+    annualRate: input.ratePercent / 100,
+    amortYears: result.amortUsed,
+    frequency: input.frequency,
+    compounding: result.compounding,
+    lumpSum: input.lumpSum,
+    annualReturn: input.investReturnPercent / 100,
+    marginalTax: (input.marginalTaxPercent ?? 0) / 100,
+    account: input.investAccount,
+  });
+}
+
+function InvestCompare({
+  input,
+  result,
+  onChange,
+}: {
+  input: CalculatorInput;
+  result: Scenario;
+  onChange: (patch: Partial<CalculatorInput>) => void;
+}) {
+  if (!(input.lumpSum > 0)) return null;
+  const comparison = investComparison(input, result);
+  return (
+    <div className="compare" data-testid="invest-compare">
+      <p className="compare-label">Or invest it instead</p>
+      <Segmented
+        label="Account"
+        name="invest-account"
+        value={input.investAccount}
+        options={[
+          { id: "tfsa", label: "TFSA" },
+          { id: "taxable", label: "Non-registered" },
+        ]}
+        onChange={(investAccount) => onChange({ investAccount })}
+      />
+      <RateField
+        id="invest-return"
+        label="Expected annual return"
+        value={input.investReturnPercent}
+        optional
+        max={100}
+        onValue={(investReturnPercent) => onChange({ investReturnPercent })}
+      />
+      <RateField
+        id="marginal-tax"
+        label="Marginal tax rate"
+        value={input.marginalTaxPercent}
+        optional
+        max={100}
+        onValue={(marginalTaxPercent) => onChange({ marginalTaxPercent })}
+      />
+      <p className="breakdown">
+        TFSA growth is tax-free. Non-registered growth is taxed at your marginal rate each year.
+      </p>
+      {comparison ? (
+        <>
+          <p className="breakdown">
+            After the earlier payoff, the regular payments are invested at the same return until the original payoff
+            date.
+          </p>
+          <p className="verdict" data-testid="invest-verdict">
+            {formatPrepayOrInvest(comparison)}
+          </p>
+          <ul className="stats">
+            <li>
+              <span>Prepay</span>
+              <strong data-testid="prepay-total">{formatDollars(comparison.prepay)}</strong>
+            </li>
+            <li>
+              <span>Invest</span>
+              <strong data-testid="invest-total">{formatDollars(comparison.invest)}</strong>
+            </li>
+          </ul>
+          {comparison.breakEvenReturn != null ? (
+            <p className="breakdown" data-testid="break-even">
+              Break-even return is {formatRate(comparison.breakEvenReturn * 100)}%.
+            </p>
+          ) : null}
+        </>
+      ) : null}
+      <p className="breakdown">Information, not financial advice.</p>
+    </div>
+  );
 }
 
 function Insurance({

@@ -44,6 +44,12 @@ export type CalculatorInput = {
   otherClosing: number | null;
   renewalCustomPercent: number | null;
   lumpSum: number;
+  /** Expected annual investment return, in percent. Empty until the user types one. */
+  investReturnPercent: number | null;
+  /** Marginal tax rate on non-registered growth, in percent. Empty until entered. */
+  marginalTaxPercent: number | null;
+  /** TFSA growth is tax-free. Non-registered growth is taxed each year. */
+  investAccount: "tfsa" | "taxable";
 };
 
 export type BlockCode = "price" | "down-min" | "down-high" | "not-insurable";
@@ -114,6 +120,9 @@ export function defaultInput(): CalculatorInput {
     otherClosing: null,
     renewalCustomPercent: null,
     lumpSum: 0,
+    investReturnPercent: null,
+    marginalTaxPercent: null,
+    investAccount: "tfsa",
   };
 }
 

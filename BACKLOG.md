@@ -58,10 +58,6 @@ Subtotal, then HST, then tip, then the amount per person. Verify the HST rate on
 
 The same mortgage, two frequencies, side by side. Show payoff time and interest saved, and one chart. Use the FCAC and WOWA definitions already in the mortgage engine: accelerated bi-weekly is half the monthly payment, 26 times a year.
 
-## 13. Prepay the mortgage or invest
-
-The person enters the mortgage rate, their marginal tax rate, and an expected return. Show both paths. Do not invent a return.
-
 ## 14. Rent versus buy in Toronto
 
 Rent, rent growth, price, down payment, rate, property tax, and a maintenance percent. Every one of those is a user input. Do not invent defaults for them. Compare net worth over a number of years they choose.
@@ -72,6 +68,7 @@ Merge, reorder, and rotate PDFs in the browser with pdf-lib. Nothing is uploaded
 
 ## Done
 
+- **Prepay the mortgage or invest.** With a yearly lump sum set, compare prepaying it against investing it in a TFSA or a non-registered account, and show the break-even return.
 - **Yearly lump sum.** One extra payment a year shows how much sooner the mortgage is paid off, and the interest saved.
 - **Ontario and Toronto land transfer tax.** Already covered inside the mortgage calculator.
 - **Minimum down payment and insurability.** Already covered inside the mortgage calculator.

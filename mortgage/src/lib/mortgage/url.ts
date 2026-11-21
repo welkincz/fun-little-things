@@ -1,5 +1,5 @@
 import { minDownPayment } from "./down";
-import { parseAmount } from "./money";
+import { parseAmount, parsePercent } from "./money";
 import { frequencyByCode, frequencyMeta, type FrequencyId } from "./payment";
 import {
   defaultInput,
@@ -33,6 +33,9 @@ const KNOWN = new Set([
   "occ",
   "rr",
   "ls",
+  "ir",
+  "tx",
+  "ac",
 ]);
 
 function flag(value: string | null, fallback: boolean, invalid: { current: boolean }): boolean {
@@ -79,6 +82,9 @@ export function serialize(input: CalculatorInput): string {
   if (input.otherClosing != null) params.set("occ", String(input.otherClosing));
   if (input.renewalCustomPercent != null) params.set("rr", String(input.renewalCustomPercent));
   if (input.lumpSum > 0) params.set("ls", String(input.lumpSum));
+  if (input.investReturnPercent != null) params.set("ir", String(input.investReturnPercent));
+  if (input.marginalTaxPercent != null) params.set("tx", String(input.marginalTaxPercent));
+  if (input.investAccount === "taxable") params.set("ac", "n");
   return `?${params.toString()}`;
 }
 
@@ -183,5 +189,31 @@ export function parseSearch(search: string): { input: CalculatorInput; invalid: 
     else invalid.current = true;
   }
 
+  if (params.has("ir")) {
+    const rate = percentParam(params.get("ir"), 100);
+    if (rate == null) invalid.current = true;
+    else input.investReturnPercent = rate;
+  }
+
+  if (params.has("tx")) {
+    const tax = percentParam(params.get("tx"), 100);
+    if (tax == null) invalid.current = true;
+    else input.marginalTaxPercent = tax;
+  }
+
+  const account = params.get("ac");
+  if (account != null) {
+    if (account === "n") input.investAccount = "taxable";
+    else if (account === "t") input.investAccount = "tfsa";
+    else invalid.current = true;
+  }
+
   return { input, invalid: invalid.current };
+}
+
+function percentParam(value: string | null, max: number): number | null {
+  if (value == null || value === "") return null;
+  const n = parsePercent(value);
+  if (n == null || n > max) return null;
+  return n;
 }
