@@ -4,7 +4,7 @@ import { roundCents } from "../money";
 import { mortgagePayment, periodsUntilPayoff, type Compounding, type FrequencyId } from "../payment";
 import { calculate, defaultInput } from "../scenario";
 import { yearlySchedule } from "../schedule";
-import { accelerationVersusMonthly, formatAccelerationSavings } from "../acceleration";
+import { accelerationVersusMonthly, formatAccelerationSavings, monthlyComparisonSeries } from "../acceleration";
 
 function cents(value: number): number {
   return Math.round(value * 100);
@@ -107,6 +107,58 @@ describe("accelerated payoff versus monthly", () => {
   it("returns nothing for a frequency that is not accelerated", () => {
     for (const frequency of ["monthly", "semimonthly", "biweekly", "weekly"] as const) {
       expect(accelerationVersusMonthly({ ...args, frequency })).toBeNull();
+      expect(monthlyComparisonSeries({ ...args, frequency })).toBeNull();
+    }
+  });
+
+  it("keeps monthly balance on the chart after the accelerated schedule hits zero", () => {
+    for (const frequency of ["accel-biweekly", "accel-weekly"] as const) {
+      const series = monthlyComparisonSeries({ ...args, frequency });
+      const acceleratedQuote = mortgagePayment(
+        args.loan,
+        args.annualRate,
+        args.amortYears,
+        frequency,
+        args.compounding,
+      );
+      const acceleratedPeriods = periodsUntilPayoff(
+        args.loan,
+        acceleratedQuote.periodicRate,
+        acceleratedQuote.raw,
+        acceleratedQuote.contractPeriods,
+      );
+      const acceleratedYears = yearlySchedule(args.loan, acceleratedQuote, acceleratedPeriods);
+      const monthlyQuote = mortgagePayment(args.loan, args.annualRate, args.amortYears, "monthly", args.compounding);
+      const monthlyPeriods = periodsUntilPayoff(
+        args.loan,
+        monthlyQuote.periodicRate,
+        monthlyQuote.raw,
+        monthlyQuote.contractPeriods,
+      );
+      const monthlyYears = yearlySchedule(args.loan, monthlyQuote, monthlyPeriods);
+
+      expect(series).not.toBeNull();
+      const points = series!;
+      expect(points[0]).toEqual({ year: 0, balance: args.loan, monthly: args.loan });
+
+      const accelDone = points.find((point) => point.year > 0 && point.balance === 0);
+      const monthlyDone = points.find((point) => point.year > 0 && point.monthly === 0);
+      expect(accelDone).toBeDefined();
+      expect(monthlyDone).toBeDefined();
+      expect(monthlyDone!.year).toBeGreaterThan(accelDone!.year);
+      expect(points.some((point) => point.balance === 0 && point.monthly > 0)).toBe(true);
+
+      expect(points.at(-1)?.year).toBe(monthlyYears.at(-1)?.year);
+      expect(points.at(-1)?.monthly).toBe(monthlyYears.at(-1)?.balance);
+      expect(points.find((point) => point.year === acceleratedYears.at(-1)?.year)?.balance).toBe(
+        acceleratedYears.at(-1)?.balance,
+      );
+      for (const row of acceleratedYears) {
+        expect(points.find((point) => point.year === row.year)?.balance).toBe(row.balance);
+      }
+      for (const row of monthlyYears) {
+        expect(points.find((point) => point.year === row.year)?.monthly).toBe(row.balance);
+      }
     }
   });
 });

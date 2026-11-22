@@ -33,6 +33,28 @@ function scheduleCost(
   return { payoffYears: periods / quote.perYear, interest };
 }
 
+export type ComparisonPoint = {
+  year: number;
+  /** Remaining balance on the selected schedule. */
+  balance: number;
+  /** Remaining balance on the same loan, paid monthly. */
+  monthly: number;
+};
+
+/** Year 0 is the starting balance. Later years are the engine's year-end balances. */
+function yearEndBalances(
+  loan: number,
+  annualRate: number,
+  amortYears: number,
+  frequency: FrequencyId,
+  compounding: Compounding,
+): { year: number; balance: number }[] {
+  const quote = mortgagePayment(loan, annualRate, amortYears, frequency, compounding);
+  const periods = periodsUntilPayoff(loan, quote.periodicRate, quote.raw, quote.contractPeriods);
+  const years = yearlySchedule(loan, quote, periods);
+  return [{ year: 0, balance: loan }, ...years.map((row) => ({ year: row.year, balance: row.balance }))];
+}
+
 /**
  * How much an accelerated frequency beats the monthly schedule on the same
  * loan, rate, and amortization. Other frequencies return null.
@@ -61,6 +83,41 @@ export function accelerationVersusMonthly(args: {
     months: deltaMonths % 12,
     interestSaved: roundCents(monthly.interest - accelerated.interest),
   };
+}
+
+/**
+ * Year-by-year balances for an accelerated schedule beside the same loan
+ * paid monthly. After a schedule reaches zero, its balance stays zero.
+ * Other frequencies return null.
+ */
+export function monthlyComparisonSeries(args: {
+  loan: number;
+  annualRate: number;
+  amortYears: number;
+  frequency: FrequencyId;
+  compounding: Compounding;
+}): ComparisonPoint[] | null {
+  if (!frequencyMeta(args.frequency).accelDivisor) return null;
+  if (!(args.loan > 0) || !(args.amortYears > 0)) return null;
+
+  const accelerated = yearEndBalances(
+    args.loan,
+    args.annualRate,
+    args.amortYears,
+    args.frequency,
+    args.compounding,
+  );
+  const monthly = yearEndBalances(args.loan, args.annualRate, args.amortYears, "monthly", args.compounding);
+  const lastYear = Math.max(accelerated.length, monthly.length) - 1;
+  const points: ComparisonPoint[] = [];
+  for (let year = 0; year <= lastYear; year += 1) {
+    points.push({
+      year,
+      balance: accelerated[year]?.balance ?? 0,
+      monthly: monthly[year]?.balance ?? 0,
+    });
+  }
+  return points;
 }
 
 export function formatAccelerationSavings(savings: AccelerationSavings): string {

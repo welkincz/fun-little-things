@@ -54,10 +54,6 @@ Bills, people, and days present. Split by days, with optional weights. Share the
 
 Subtotal, then HST, then tip, then the amount per person. Verify the HST rate on a CRA page before shipping. It was not fetched for the research.
 
-## 12. Accelerated bi-weekly versus monthly
-
-The same mortgage, two frequencies, side by side. Show payoff time and interest saved, and one chart. Use the FCAC and WOWA definitions already in the mortgage engine: accelerated bi-weekly is half the monthly payment, 26 times a year.
-
 ## 14. Rent versus buy in Toronto
 
 Rent, rent growth, price, down payment, rate, property tax, and a maintenance percent. Every one of those is a user input. Do not invent defaults for them. Compare net worth over a number of years they choose.
@@ -75,4 +71,5 @@ Merge, reorder, and rotate PDFs in the browser with pdf-lib. Nothing is uploaded
 - **CMHC premium and sales tax.** Already covered inside the mortgage calculator.
 - **Mortgage renewal shock.** Renewal shock is now part of the mortgage calculator.
 - **Accelerated payoff.** Accel. bi-weekly and accelerated weekly show how many years and months sooner the mortgage is paid off, and the interest saved versus monthly, on the same loan.
+- **Accelerated vs monthly chart.** On accelerated bi-weekly or weekly, the balance chart also draws the monthly balance on the same loan.
 - **Mortgage og.png v2.** `mortgage/public/og.png` (1200×627) says “Canadian mortgage calculator” in Fraunces, with `$800k · 20% down · 25 yr`, and shows the $3,542 payment once in the result card. Regenerate with `npm run og` from `mortgage/`.

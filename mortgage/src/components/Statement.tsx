@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import {
   formatCAD,
@@ -9,7 +9,11 @@ import {
   formatRatio,
   formatYears,
 } from "../format";
-import { accelerationVersusMonthly, formatAccelerationSavings } from "../lib/mortgage/acceleration";
+import {
+  accelerationVersusMonthly,
+  formatAccelerationSavings,
+  monthlyComparisonSeries,
+} from "../lib/mortgage/acceleration";
 import {
   formatPrepayOrInvest,
   formatYearlyLumpSum,
@@ -258,7 +262,7 @@ export function ScenarioDetails({
       <CashToClose input={input} result={result} onChange={onChange} />
       <QualifySection input={input} result={result} onChange={onChange} />
       <Renewal input={input} result={result} onChange={onChange} />
-      <Breakdown result={result} />
+      <Breakdown input={input} result={result} />
       <YearByYear result={result} />
       <How input={input} result={result} onChange={onChange} />
       <details className="accordion">
@@ -823,11 +827,21 @@ function Renewal({
   );
 }
 
-function Breakdown({ result }: { result: Scenario }) {
+function Breakdown({ input, result }: { input: CalculatorInput; result: Scenario }) {
   const principal = result.years.reduce((sum, row) => sum + row.principal, 0);
   const interest = result.years.reduce((sum, row) => sum + row.interest, 0);
   const total = principal + interest;
   const principalShare = total > 0 ? (principal / total) * 100 : 0;
+  const comparison = useMemo(() => {
+    if (withheld(result) || !(result.loan > 0)) return null;
+    return monthlyComparisonSeries({
+      loan: result.loan,
+      annualRate: input.ratePercent / 100,
+      amortYears: result.amortUsed,
+      frequency: input.frequency,
+      compounding: result.compounding,
+    });
+  }, [input, result]);
   return (
     <details className="accordion">
       <summary>Payment breakdown chart</summary>
@@ -867,7 +881,7 @@ function Breakdown({ result }: { result: Scenario }) {
               </li>
             </ul>
             <Suspense fallback={<div className="chart" aria-hidden="true" />}>
-              <BalanceChart points={result.chart} />
+              <BalanceChart points={comparison ?? result.chart} compare={comparison != null} />
             </Suspense>
           </>
         )}
