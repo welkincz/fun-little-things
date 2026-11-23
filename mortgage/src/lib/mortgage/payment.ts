@@ -118,6 +118,20 @@ export function mortgagePayment(
   };
 }
 
+/** Principal whose unrounded monthly annuity equals `payment`. */
+export function principalForMonthlyPayment(
+  payment: number,
+  annualRate: number,
+  amortYears: number,
+  compounding: Compounding,
+): number {
+  const periods = amortYears * 12;
+  const i = periodicRate(annualRate, 12, compounding);
+  if (!(payment > 0) || periods <= 0) return 0;
+  if (i === 0) return payment * periods;
+  return (payment * (1 - (1 + i) ** -periods)) / i;
+}
+
 /** Closed form. Uses the unrounded annuity payment so published balances match. */
 export function rawBalance(
   principal: number,

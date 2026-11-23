@@ -1,3 +1,5 @@
+import { roundCents } from "./money";
+import { principalForMonthlyPayment, type Compounding } from "./payment";
 import { GDS_LIMIT, REVOLVING_FACTOR, STRESS_FLOOR, TDS_LIMIT } from "./rules";
 
 export function stressRate(annualRate: number): number {
@@ -26,7 +28,16 @@ export type QualifyResult = {
   tdsLimit: number;
 };
 
-export function qualify(input: QualifyInput): QualifyResult {
+type CostInput = {
+  propertyTax: number | null;
+  taxPeriod: "month" | "year";
+  heatMonthly: number | null;
+  condoMonthly: number | null;
+  otherDebtsMonthly: number | null;
+  revolvingBalance: number | null;
+};
+
+function carryingCosts(input: CostInput) {
   const tax =
     input.propertyTax == null
       ? 0
@@ -43,9 +54,18 @@ export function qualify(input: QualifyInput): QualifyResult {
     input.condoMonthly == null ||
     input.otherDebtsMonthly == null ||
     input.revolvingBalance == null;
+  return {
+    housingExtra: tax + heat + 0.5 * condo,
+    debtExtra: debts + REVOLVING_FACTOR * revolving,
+    assumedZeroCosts,
+  };
+}
 
-  const housingMonthly = input.qualifyingPayment + tax + heat + 0.5 * condo;
-  const debtMonthly = housingMonthly + debts + REVOLVING_FACTOR * revolving;
+export function qualify(input: QualifyInput): QualifyResult {
+  const costs = carryingCosts(input);
+  const housingMonthly = input.qualifyingPayment + costs.housingExtra;
+  const debtMonthly = housingMonthly + costs.debtExtra;
+  const assumedZeroCosts = costs.assumedZeroCosts;
 
   if (!(input.incomeAnnual != null && input.incomeAnnual > 0)) {
     return {
@@ -76,4 +96,38 @@ export function qualify(input: QualifyInput): QualifyResult {
     gdsLimit: GDS_LIMIT,
     tdsLimit: TDS_LIMIT,
   };
+}
+
+export type MaxPrincipalInput = CostInput & {
+  /** Contract rate as a decimal. The stress-test rate is applied inside. */
+  annualRate: number;
+  amortYears: number;
+  compounding: Compounding;
+  incomeAnnual: number | null;
+};
+
+export type MaxPrincipal = {
+  principal: number;
+  /** Which ratio uses up the room first. */
+  binding: "gds" | "tds" | "both";
+};
+
+/** Largest mortgage whose stress-test payment keeps GDS and TDS within the CMHC limits. */
+export function maxQualifyingPrincipal(input: MaxPrincipalInput): MaxPrincipal | null {
+  if (!(input.incomeAnnual != null && input.incomeAnnual > 0)) return null;
+
+  const incomeMonthly = input.incomeAnnual / 12;
+  const costs = carryingCosts(input);
+  const maxPayGds = GDS_LIMIT * incomeMonthly - costs.housingExtra;
+  const maxPayTds = TDS_LIMIT * incomeMonthly - costs.housingExtra - costs.debtExtra;
+  const binding: MaxPrincipal["binding"] =
+    Math.abs(maxPayGds - maxPayTds) <= 0.01 ? "both" : maxPayTds < maxPayGds ? "tds" : "gds";
+  const cap = Math.min(maxPayGds, maxPayTds);
+  const payment = Math.floor(Math.max(0, cap) * 100 + 1e-8) / 100;
+  if (!(payment > 0)) return { principal: 0, binding };
+
+  const principal = roundCents(
+    principalForMonthlyPayment(payment, stressRate(input.annualRate), input.amortYears, input.compounding),
+  );
+  return { principal, binding };
 }

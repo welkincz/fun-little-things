@@ -7,6 +7,7 @@ import {
   formatPercentPoints,
   formatRate,
   formatRatio,
+  formatWhole,
   formatYears,
 } from "../format";
 import {
@@ -21,8 +22,10 @@ import {
   yearlyLumpSum,
   type PrepayOrInvest,
 } from "../lib/mortgage/lump";
+import { loanToValue, minDownPayment } from "../lib/mortgage/down";
 import type { FrequencyId } from "../lib/mortgage/payment";
-import { ruleList, RULES_CHECKED } from "../lib/mortgage/rules";
+import { maxQualifyingPrincipal } from "../lib/mortgage/qualify";
+import { INSURED_PRICE_CAP, ruleList, RULES_CHECKED } from "../lib/mortgage/rules";
 import type { CalculatorInput, Scenario } from "../lib/mortgage/scenario";
 import { AnimatedMoney } from "./AnimatedMoney";
 import { AmountField, CheckField, ChoiceGroup, RateField, Segmented } from "./Fields";
@@ -648,7 +651,7 @@ function QualifySection({
         {withheld(result) ? (
           <p>The stress test is calculated once the down payment is allowed.</p>
         ) : (
-          <Qualify result={result} />
+          <Qualify input={input} result={result} />
         )}
       </div>
     </details>
@@ -673,7 +676,24 @@ function Meter({ ratio, limit, over }: { ratio: number; limit: number; over: boo
   );
 }
 
-function Qualify({ result }: { result: Scenario }) {
+function insuranceBand(price: number, down: number): number {
+  const ltv = loanToValue(price, down);
+  if (ltv > 0.95 + 1e-10) return 4;
+  if (ltv > 0.9 + 1e-10) return 3;
+  if (ltv > 0.85 + 1e-10) return 2;
+  if (ltv > 0.8 + 1e-10) return 1;
+  return 0;
+}
+
+/** The entered down is not enough for that price, or the price crosses an insurance threshold. */
+function rulesMayChange(currentPrice: number, down: number, impliedPrice: number): boolean {
+  if (!(impliedPrice > 0)) return false;
+  if (minDownPayment(impliedPrice) > down + 0.001) return true;
+  if ((currentPrice < INSURED_PRICE_CAP) !== (impliedPrice < INSURED_PRICE_CAP)) return true;
+  return insuranceBand(currentPrice, down) !== insuranceBand(impliedPrice, down);
+}
+
+function Qualify({ input, result }: { input: CalculatorInput; result: Scenario }) {
   const qualify = result.qualify;
   if (!qualify || qualify.status === "need-income") {
     return (
@@ -702,6 +722,43 @@ function Qualify({ result }: { result: Scenario }) {
       </p>
       <Meter ratio={qualify.tds ?? 0} limit={qualify.tdsLimit} over={tdsOver} />
       {qualify.assumedZeroCosts ? <p>Blank tax, heat, condo fees, and debts are counted as $0.</p> : null}
+      <MaxQualify input={input} result={result} />
+    </>
+  );
+}
+
+function MaxQualify({ input, result }: { input: CalculatorInput; result: Scenario }) {
+  const max = maxQualifyingPrincipal({
+    annualRate: input.ratePercent / 100,
+    amortYears: result.amortUsed,
+    compounding: result.compounding,
+    incomeAnnual: input.income,
+    propertyTax: input.propertyTax,
+    taxPeriod: input.taxPeriod,
+    heatMonthly: input.heat,
+    condoMonthly: input.condo,
+    otherDebtsMonthly: input.debts,
+    revolvingBalance: input.revolving,
+  });
+  if (!max) return null;
+  const home = max.principal + input.downPayment;
+  const limit =
+    max.binding === "both"
+      ? "GDS and TDS both limit it."
+      : max.binding === "tds"
+        ? "TDS limits it."
+        : "GDS limits it.";
+  return (
+    <>
+      <p data-testid="max-qualify">
+        The most you could qualify for is {formatCAD(max.principal)}. {limit} With your{" "}
+        {formatWhole(input.downPayment)} down, that is a {formatCAD(home)} home.
+      </p>
+      {rulesMayChange(input.price, input.downPayment, home) ? (
+        <p data-testid="max-qualify-caveat">
+          Minimum down payment and insurance premium rules may change that price.
+        </p>
+      ) : null}
     </>
   );
 }
@@ -984,7 +1041,8 @@ function How({
             <p>
               The qualifying rate is the greater of the contract rate plus 2 percentage points and 5.25%. GDS uses that
               monthly payment, property tax, heat, and half of condo fees, divided by monthly income. TDS adds other
-              debts and 3% of revolving balances.
+              debts and 3% of revolving balances. The most you could qualify for is the largest mortgage that still
+              fits both limits. The home price adds the down payment already entered.
             </p>
           </>
         )}
