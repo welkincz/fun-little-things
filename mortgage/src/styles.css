@@ -679,6 +679,12 @@ td { font-weight: 400; }
 
 .share:focus-visible { outline: none; box-shadow: var(--focus); }
 
+.csv-download {
+  max-width: 100%;
+  font-size: var(--fs-sm);
+  padding: 0 12px;
+}
+
 .dock { display: none; }
 
 :focus-visible { outline: none; box-shadow: var(--focus); }

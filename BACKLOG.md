@@ -64,6 +64,7 @@ Merge, reorder, and rotate PDFs in the browser with pdf-lib. Nothing is uploaded
 
 ## Done
 
+- **Download the mortgage schedule.** The year-by-year table has a Download CSV button that saves the schedule on screen as mortgage-schedule.csv.
 - **Max you could qualify for.** With household income entered, the qualify section shows the largest mortgage that still fits the GDS and TDS limits, which limit binds, and the home price with the down payment already entered.
 - **Prepay the mortgage or invest.** With a yearly lump sum set, compare prepaying it against investing it in a TFSA or a non-registered account, and show the break-even return.
 - **Yearly lump sum.** One extra payment a year shows how much sooner the mortgage is paid off, and the interest saved.

@@ -27,6 +27,7 @@ import type { FrequencyId } from "../lib/mortgage/payment";
 import { maxQualifyingPrincipal } from "../lib/mortgage/qualify";
 import { INSURED_PRICE_CAP, ruleList, RULES_CHECKED } from "../lib/mortgage/rules";
 import type { CalculatorInput, Scenario } from "../lib/mortgage/scenario";
+import { scheduleCsv } from "../lib/mortgage/scheduleCsv";
 import { AnimatedMoney } from "./AnimatedMoney";
 import { AmountField, CheckField, ChoiceGroup, RateField, Segmented } from "./Fields";
 
@@ -947,6 +948,18 @@ function Breakdown({ input, result }: { input: CalculatorInput; result: Scenario
   );
 }
 
+function downloadSchedule(rows: Scenario["years"]) {
+  const blob = new Blob([scheduleCsv(rows)], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = "mortgage-schedule.csv";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
 function YearByYear({ result }: { result: Scenario }) {
   return (
     <details className="accordion">
@@ -955,39 +968,49 @@ function YearByYear({ result }: { result: Scenario }) {
         {result.years.length === 0 ? (
           <p>The year-by-year table appears once the down payment is allowed.</p>
         ) : (
-          <div className="table-wrap" tabIndex={0} aria-label="Year-by-year schedule">
-            <table>
-              <caption>Balance, principal, and interest at the end of each year.</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Year</th>
-                  <th scope="col" className="figure">
-                    Paid
-                  </th>
-                  <th scope="col" className="figure">
-                    Principal
-                  </th>
-                  <th scope="col" className="figure">
-                    Interest
-                  </th>
-                  <th scope="col" className="figure">
-                    Balance
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.years.map((row) => (
-                  <tr key={row.year}>
-                    <th scope="row">{row.year}</th>
-                    <td className="figure">{formatCAD(row.paid)}</td>
-                    <td className="figure">{formatCAD(row.principal)}</td>
-                    <td className="figure">{formatCAD(row.interest)}</td>
-                    <td className="figure">{formatCAD(row.balance)}</td>
+          <>
+            <button
+              type="button"
+              className="share csv-download"
+              data-testid="download-csv"
+              onClick={() => downloadSchedule(result.years)}
+            >
+              Download CSV
+            </button>
+            <div className="table-wrap" tabIndex={0} aria-label="Year-by-year schedule">
+              <table>
+                <caption>Balance, principal, and interest at the end of each year.</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Year</th>
+                    <th scope="col" className="figure">
+                      Paid
+                    </th>
+                    <th scope="col" className="figure">
+                      Principal
+                    </th>
+                    <th scope="col" className="figure">
+                      Interest
+                    </th>
+                    <th scope="col" className="figure">
+                      Balance
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {result.years.map((row) => (
+                    <tr key={row.year}>
+                      <th scope="row">{row.year}</th>
+                      <td className="figure">{formatCAD(row.paid)}</td>
+                      <td className="figure">{formatCAD(row.principal)}</td>
+                      <td className="figure">{formatCAD(row.interest)}</td>
+                      <td className="figure">{formatCAD(row.balance)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
     </details>
