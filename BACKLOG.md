@@ -64,6 +64,7 @@ Merge, reorder, and rotate PDFs in the browser with pdf-lib. Nothing is uploaded
 
 ## Done
 
+- **Break-early penalty estimate.** Beside renewal, the calculator estimates the penalty for breaking a fixed or variable mortgage during the term. Variable is three months of interest. Fixed is the greater of that and the interest-rate differential, using a comparison rate the borrower enters. The balance comes from the amortization already on screen.
 - **Download the mortgage schedule.** The year-by-year table has a Download CSV button that saves the schedule on screen as mortgage-schedule.csv.
 - **Max you could qualify for.** With household income entered, the qualify section shows the largest mortgage that still fits the GDS and TDS limits, which limit binds, and the home price with the down payment already entered.
 - **Prepay the mortgage or invest.** With a yearly lump sum set, compare prepaying it against investing it in a TFSA or a non-registered account, and show the break-even return.

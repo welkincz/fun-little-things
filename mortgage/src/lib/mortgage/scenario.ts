@@ -31,6 +31,12 @@ export type CalculatorInput = {
   rateType: "fixed" | "variable";
   variableCompounding: Compounding;
   termYears: number;
+  /** Whole years into the term for a break estimate. 0 is today. */
+  breakYear: number;
+  /** Months left in the term. Null keeps the months remaining after breakYear. */
+  breakMonthsLeft: number | null;
+  /** Lender's rate today for the remaining term, in percent. Empty until entered. */
+  comparisonRatePercent: number | null;
   amortYears: number;
   frequency: FrequencyId;
   payPremiumInCash: boolean;
@@ -107,6 +113,9 @@ export function defaultInput(): CalculatorInput {
     rateType: "fixed",
     variableCompounding: "monthly",
     termYears: 5,
+    breakYear: 0,
+    breakMonthsLeft: null,
+    comparisonRatePercent: null,
     amortYears: 25,
     frequency: "monthly",
     payPremiumInCash: false,

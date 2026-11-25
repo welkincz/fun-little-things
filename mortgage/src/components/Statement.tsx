@@ -24,12 +24,13 @@ import {
 } from "../lib/mortgage/lump";
 import { loanToValue, minDownPayment } from "../lib/mortgage/down";
 import type { FrequencyId } from "../lib/mortgage/payment";
+import { breakPenalty, type BreakPenalty } from "../lib/mortgage/penalty";
 import { maxQualifyingPrincipal } from "../lib/mortgage/qualify";
 import { INSURED_PRICE_CAP, ruleList, RULES_CHECKED } from "../lib/mortgage/rules";
 import type { CalculatorInput, Scenario } from "../lib/mortgage/scenario";
 import { scheduleCsv } from "../lib/mortgage/scheduleCsv";
 import { AnimatedMoney } from "./AnimatedMoney";
-import { AmountField, CheckField, ChoiceGroup, RateField, Segmented } from "./Fields";
+import { AmountField, CheckField, ChoiceGroup, DecimalField, RateField, Segmented } from "./Fields";
 
 const loadBalanceChart = () => import("./BalanceChart").then((mod) => ({ default: mod.BalanceChart }));
 
@@ -266,6 +267,7 @@ export function ScenarioDetails({
       <CashToClose input={input} result={result} onChange={onChange} />
       <QualifySection input={input} result={result} onChange={onChange} />
       <Renewal input={input} result={result} onChange={onChange} />
+      <BreakEarly input={input} result={result} onChange={onChange} />
       <Breakdown input={input} result={result} />
       <YearByYear result={result} />
       <How input={input} result={result} onChange={onChange} />
@@ -880,6 +882,166 @@ function Renewal({
             <p>Extending the amortization at renewal needs the lender to agree.</p>
           </>
         )}
+      </div>
+    </details>
+  );
+}
+
+function clampedBreakYear(input: CalculatorInput): number {
+  return Math.min(input.termYears, Math.max(0, Math.round(input.breakYear)));
+}
+
+function monthsLeftInTerm(input: CalculatorInput): number {
+  const breakYear = clampedBreakYear(input);
+  const termMonths = input.termYears * 12;
+  const derived = (input.termYears - breakYear) * 12;
+  if (input.breakMonthsLeft == null || !Number.isFinite(input.breakMonthsLeft)) return derived;
+  return Math.min(termMonths, Math.max(0, Math.round(input.breakMonthsLeft)));
+}
+
+function balanceAtBreak(result: Scenario, year: number): number {
+  if (year <= 0) return result.loan;
+  return result.years.find((row) => row.year === year)?.balance ?? 0;
+}
+
+function balanceLabel(year: number): string {
+  if (year <= 0) return "Balance today";
+  return `Balance after ${year} ${year === 1 ? "year" : "years"}`;
+}
+
+function penaltyReason(rateType: CalculatorInput["rateType"], estimate: BreakPenalty): string {
+  if (rateType === "variable") return "The penalty is three months' interest.";
+  if (estimate.binding === "ird") return "The interest-rate differential is higher, so that is the penalty.";
+  if (estimate.ird === estimate.threeMonthsInterest) {
+    return "Three months' interest and the interest-rate differential are the same.";
+  }
+  return "Three months' interest is higher, so that is the penalty.";
+}
+
+function parseWholeMonths(raw: string): number | null {
+  if (!/^\d+$/.test(raw.trim())) return null;
+  return Number(raw.trim());
+}
+
+function BreakEarly({
+  input,
+  result,
+  onChange,
+}: {
+  input: CalculatorInput;
+  result: Scenario;
+  onChange: (patch: Partial<CalculatorInput>) => void;
+}) {
+  const breakYear = clampedBreakYear(input);
+  const monthsLeft = monthsLeftInTerm(input);
+  const termMonths = input.termYears * 12;
+  const ready = input.rateType === "variable" || input.comparisonRatePercent != null;
+  const estimate =
+    withheld(result) || !ready
+      ? null
+      : breakPenalty({
+          rateType: input.rateType,
+          balance: balanceAtBreak(result, breakYear),
+          contractRate: input.ratePercent / 100,
+          monthsLeft,
+          comparisonRate: (input.comparisonRatePercent ?? 0) / 100,
+        });
+
+  return (
+    <details className="accordion">
+      <summary>Break the mortgage early</summary>
+      <div className="accordion-body">
+        <ChoiceGroup
+          legend="Rate type"
+          name="break-rate-type"
+          value={input.rateType}
+          options={rateTypes}
+          onChange={(rateType) => onChange({ rateType })}
+        />
+        <div className="detail-field">
+          <label htmlFor="break-year">Break after</label>
+          <select
+            id="break-year"
+            className="select"
+            value={breakYear}
+            onChange={(event) => onChange({ breakYear: Number(event.target.value), breakMonthsLeft: null })}
+          >
+            {Array.from({ length: input.termYears + 1 }, (_, year) => (
+              <option key={year} value={year}>
+                {year === 0 ? "Now" : `${year} ${year === 1 ? "year" : "years"}`}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="detail-field">
+          <label htmlFor="months-left">Months left in the term</label>
+          <DecimalField
+            id="months-left"
+            value={monthsLeft}
+            format={(value) => String(Math.round(value))}
+            parse={parseWholeMonths}
+            min={0}
+            max={termMonths}
+            minLabel="0"
+            maxLabel={String(termMonths)}
+            onCommit={(value) => {
+              if (value == null) return;
+              const derived = (input.termYears - breakYear) * 12;
+              onChange({ breakMonthsLeft: value === derived ? null : value });
+            }}
+          />
+        </div>
+        {input.rateType === "fixed" ? (
+          <>
+            <RateField
+              id="comparison-rate"
+              label="The rate the lender would charge today for a term about as long as what's left"
+              value={input.comparisonRatePercent}
+              optional
+              onValue={(comparisonRatePercent) => onChange({ comparisonRatePercent })}
+            />
+            <p>Many big banks use posted rates minus the original discount, so the penalty can be much higher.</p>
+          </>
+        ) : null}
+        {withheld(result) ? (
+          <p>The penalty is calculated once the down payment is allowed.</p>
+        ) : (
+          <>
+            <ul className="stats">
+              <li>
+                <span>{balanceLabel(breakYear)}</span>
+                <strong data-testid="break-balance">{formatCAD(balanceAtBreak(result, breakYear))}</strong>
+              </li>
+              {estimate ? (
+                <>
+                  <li>
+                    <span>Three months' interest</span>
+                    <strong>{formatCAD(estimate.threeMonthsInterest)}</strong>
+                  </li>
+                  {estimate.ird != null ? (
+                    <li>
+                      <span>Interest-rate differential</span>
+                      <strong>{formatCAD(estimate.ird)}</strong>
+                    </li>
+                  ) : null}
+                  <li>
+                    <span>Penalty</span>
+                    <strong data-testid="break-penalty">{formatCAD(estimate.penalty)}</strong>
+                  </li>
+                </>
+              ) : null}
+            </ul>
+            <p>
+              {estimate
+                ? penaltyReason(input.rateType, estimate)
+                : "Enter the comparison rate to estimate the penalty."}
+            </p>
+          </>
+        )}
+        <p>
+          Estimate only. Lenders calculate the interest-rate differential differently, including posted versus
+          discounted rates. Check your mortgage contract.
+        </p>
       </div>
     </details>
   );

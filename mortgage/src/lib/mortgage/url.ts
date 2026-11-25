@@ -21,6 +21,9 @@ const KNOWN = new Set([
   "vc",
   "am",
   "tm",
+  "by",
+  "ml",
+  "cr",
   "fq",
   "pc",
   "inc",
@@ -70,6 +73,9 @@ export function serialize(input: CalculatorInput): string {
   params.set("vc", input.variableCompounding === "monthly" ? "m" : "s");
   params.set("am", String(input.amortYears));
   params.set("tm", String(input.termYears));
+  if (input.breakYear > 0) params.set("by", String(input.breakYear));
+  if (input.breakMonthsLeft != null) params.set("ml", String(input.breakMonthsLeft));
+  if (input.comparisonRatePercent != null) params.set("cr", String(input.comparisonRatePercent));
   params.set("fq", frequencyMeta(input.frequency).code);
   params.set("pc", input.payPremiumInCash ? "1" : "0");
   if (input.income != null) params.set("inc", String(input.income));
@@ -156,6 +162,24 @@ export function parseSearch(search: string): { input: CalculatorInput; invalid: 
     const years = Number(params.get("tm"));
     if (!Number.isInteger(years) || years < 1 || years > 10) invalid.current = true;
     else input.termYears = years;
+  }
+
+  if (params.has("by")) {
+    const year = Number(params.get("by"));
+    if (!Number.isInteger(year) || year < 0 || year > 10) invalid.current = true;
+    else input.breakYear = year;
+  }
+
+  if (params.has("ml")) {
+    const months = Number(params.get("ml"));
+    if (!Number.isInteger(months) || months < 0 || months > 120) invalid.current = true;
+    else input.breakMonthsLeft = months;
+  }
+
+  if (params.has("cr")) {
+    const rate = percentParam(params.get("cr"), 30);
+    if (rate == null) invalid.current = true;
+    else input.comparisonRatePercent = rate;
   }
 
   const fq = params.get("fq");
