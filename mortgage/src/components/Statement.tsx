@@ -22,6 +22,7 @@ import {
   yearlyLumpSum,
   type PrepayOrInvest,
 } from "../lib/mortgage/lump";
+import { compareRates } from "../lib/mortgage/compare";
 import { loanToValue, minDownPayment } from "../lib/mortgage/down";
 import type { FrequencyId } from "../lib/mortgage/payment";
 import { breakPenalty, type BreakPenalty } from "../lib/mortgage/penalty";
@@ -267,6 +268,7 @@ export function ScenarioDetails({
       <CashToClose input={input} result={result} onChange={onChange} />
       <QualifySection input={input} result={result} onChange={onChange} />
       <Renewal input={input} result={result} onChange={onChange} />
+      <CompareAnotherRate input={input} result={result} onChange={onChange} />
       <BreakEarly input={input} result={result} onChange={onChange} />
       <Breakdown input={input} result={result} />
       <YearByYear result={result} />
@@ -880,6 +882,90 @@ function Renewal({
               </table>
             </div>
             <p>Extending the amortization at renewal needs the lender to agree.</p>
+          </>
+        )}
+      </div>
+    </details>
+  );
+}
+
+function termSpan(years: number): string {
+  const term = years > 0 ? years : 5;
+  return term === 1 ? "1 year" : `${term} years`;
+}
+
+function CompareAnotherRate({
+  input,
+  result,
+  onChange,
+}: {
+  input: CalculatorInput;
+  result: Scenario;
+  onChange: (patch: Partial<CalculatorInput>) => void;
+}) {
+  const compared =
+    withheld(result) || input.otherRatePercent == null
+      ? null
+      : compareRates({
+          principal: result.loan,
+          annualRate: input.ratePercent / 100,
+          otherRate: input.otherRatePercent / 100,
+          amortYears: result.amortUsed,
+          termYears: input.termYears,
+          frequency: input.frequency,
+          compounding: result.compounding,
+        });
+  const per = result.frequencyLabel.toLowerCase();
+  const over = termSpan(input.termYears);
+
+  return (
+    <details className="accordion">
+      <summary>Compare another rate</summary>
+      <div className="accordion-body">
+        <RateField
+          id="other-rate"
+          label="Other rate"
+          value={input.otherRatePercent}
+          optional
+          onValue={(otherRatePercent) => onChange({ otherRatePercent })}
+        />
+        {withheld(result) ? (
+          <p>The comparison is calculated once the down payment is allowed.</p>
+        ) : compared == null ? (
+          <p>Enter another lender's rate to compare the payment and the interest.</p>
+        ) : (
+          <>
+            <ul className="stats">
+              <li>
+                <span>Payment at the other rate</span>
+                <strong data-testid="other-payment">
+                  {formatCAD(compared.other.payment)} {per}
+                </strong>
+              </li>
+              <li>
+                <span>Payment difference</span>
+                <strong data-testid="other-payment-delta">
+                  {formatDelta(compared.paymentDelta)} {per}
+                </strong>
+              </li>
+              <li>
+                <span>Interest over {over} at this rate</span>
+                <strong data-testid="term-interest">{formatCAD(compared.current.termInterest)}</strong>
+              </li>
+              <li>
+                <span>Interest over {over} at the other rate</span>
+                <strong data-testid="other-term-interest">{formatCAD(compared.other.termInterest)}</strong>
+              </li>
+              <li>
+                <span>Interest difference over {over}</span>
+                <strong data-testid="term-interest-delta">{formatDelta(compared.termInterestDelta)}</strong>
+              </li>
+              <li>
+                <span>Interest difference over the full amortization</span>
+                <strong data-testid="amort-interest-delta">{formatDelta(compared.amortInterestDelta)}</strong>
+              </li>
+            </ul>
+            <p>Same principal, amortization, frequency, and compounding. A minus means the other rate costs less.</p>
           </>
         )}
       </div>

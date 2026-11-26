@@ -28,6 +28,8 @@ export type CalculatorInput = {
   citizen: boolean;
   downPayment: number;
   ratePercent: number;
+  /** Another lender's rate, in percent. Empty until the user types one. */
+  otherRatePercent: number | null;
   rateType: "fixed" | "variable";
   variableCompounding: Compounding;
   termYears: number;
@@ -110,6 +112,7 @@ export function defaultInput(): CalculatorInput {
     citizen: true,
     downPayment: minDownPayment(price),
     ratePercent: 4.5,
+    otherRatePercent: null,
     rateType: "fixed",
     variableCompounding: "monthly",
     termYears: 5,

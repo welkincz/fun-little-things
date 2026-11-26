@@ -17,6 +17,7 @@ const KNOWN = new Set([
   "cit",
   "d",
   "r",
+  "or",
   "rt",
   "vc",
   "am",
@@ -69,6 +70,7 @@ export function serialize(input: CalculatorInput): string {
   params.set("cit", input.citizen ? "1" : "0");
   params.set("d", String(input.downPayment));
   params.set("r", String(input.ratePercent));
+  if (input.otherRatePercent != null) params.set("or", String(input.otherRatePercent));
   params.set("rt", input.rateType === "fixed" ? "f" : "v");
   params.set("vc", input.variableCompounding === "monthly" ? "m" : "s");
   params.set("am", String(input.amortYears));
@@ -138,6 +140,12 @@ export function parseSearch(search: string): { input: CalculatorInput; invalid: 
     const rate = moneyParam(params.get("r"), invalid);
     if (rate == null || rate > 30) invalid.current = true;
     else input.ratePercent = rate;
+  }
+
+  if (params.has("or")) {
+    const rate = percentParam(params.get("or"), 30);
+    if (rate == null) invalid.current = true;
+    else input.otherRatePercent = rate;
   }
 
   const rt = params.get("rt");
