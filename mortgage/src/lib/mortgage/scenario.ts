@@ -52,6 +52,8 @@ export type CalculatorInput = {
   otherClosing: number | null;
   renewalCustomPercent: number | null;
   lumpSum: number;
+  /** Dollars added to every regular payment. Empty until the user types one. */
+  topUp: number | null;
   /** Expected annual investment return, in percent. Empty until the user types one. */
   investReturnPercent: number | null;
   /** Marginal tax rate on non-registered growth, in percent. Empty until entered. */
@@ -132,6 +134,7 @@ export function defaultInput(): CalculatorInput {
     otherClosing: null,
     renewalCustomPercent: null,
     lumpSum: 0,
+    topUp: null,
     investReturnPercent: null,
     marginalTaxPercent: null,
     investAccount: "tfsa",

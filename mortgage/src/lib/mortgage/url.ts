@@ -37,6 +37,7 @@ const KNOWN = new Set([
   "occ",
   "rr",
   "ls",
+  "tp",
   "ir",
   "tx",
   "ac",
@@ -90,6 +91,7 @@ export function serialize(input: CalculatorInput): string {
   if (input.otherClosing != null) params.set("occ", String(input.otherClosing));
   if (input.renewalCustomPercent != null) params.set("rr", String(input.renewalCustomPercent));
   if (input.lumpSum > 0) params.set("ls", String(input.lumpSum));
+  if (input.topUp != null && input.topUp > 0) params.set("tp", String(input.topUp));
   if (input.investReturnPercent != null) params.set("ir", String(input.investReturnPercent));
   if (input.marginalTaxPercent != null) params.set("tx", String(input.marginalTaxPercent));
   if (input.investAccount === "taxable") params.set("ac", "n");
@@ -207,6 +209,7 @@ export function parseSearch(search: string): { input: CalculatorInput; invalid: 
     ["occ", "otherClosing"],
     ["rr", "renewalCustomPercent"],
     ["ls", "lumpSum"],
+    ["tp", "topUp"],
   ] as const;
   for (const [key, field] of optional) {
     if (!params.has(key)) continue;

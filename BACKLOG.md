@@ -64,6 +64,7 @@ Merge, reorder, and rotate PDFs in the browser with pdf-lib. Nothing is uploaded
 
 ## Done
 
+- **Increase each payment.** Add dollars to every regular payment to see the new payment, how much sooner the mortgage is paid off, and the interest saved. Deep link `tp`.
 - **Compare another rate.** Under At renewal, enter another lender's rate to see its payment, the difference per period, and the interest difference over the term and the full amortization. Deep link `or`.
 - **Break-early penalty estimate.** Beside renewal, the calculator estimates the penalty for breaking a fixed or variable mortgage during the term. Variable is three months of interest. Fixed is the greater of that and the interest-rate differential, using a comparison rate the borrower enters. The balance comes from the amortization already on screen.
 - **Download the mortgage schedule.** The year-by-year table has a Download CSV button that saves the schedule on screen as mortgage-schedule.csv.

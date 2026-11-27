@@ -24,7 +24,8 @@ import {
 } from "../lib/mortgage/lump";
 import { compareRates } from "../lib/mortgage/compare";
 import { loanToValue, minDownPayment } from "../lib/mortgage/down";
-import type { FrequencyId } from "../lib/mortgage/payment";
+import { mortgagePayment, type FrequencyId } from "../lib/mortgage/payment";
+import { formatPaymentTopUp, paymentTopUp } from "../lib/mortgage/topup";
 import { breakPenalty, type BreakPenalty } from "../lib/mortgage/penalty";
 import { maxQualifyingPrincipal } from "../lib/mortgage/qualify";
 import { INSURED_PRICE_CAP, ruleList, RULES_CHECKED } from "../lib/mortgage/rules";
@@ -143,6 +144,21 @@ function lumpLine(input: CalculatorInput, result: Scenario): string | null {
   return savings ? formatYearlyLumpSum(savings) : null;
 }
 
+function topUpLine(input: CalculatorInput, result: Scenario): string | null {
+  if (result.blocked || result.payment == null || !(result.loan > 0) || input.topUp == null || !(input.topUp > 0)) {
+    return null;
+  }
+  const quote = mortgagePayment(
+    result.loan,
+    input.ratePercent / 100,
+    result.amortUsed,
+    input.frequency,
+    result.compounding,
+  );
+  const savings = paymentTopUp({ loan: result.loan, quote, extra: input.topUp });
+  return savings ? formatPaymentTopUp(savings) : null;
+}
+
 function SoonerLine({ text }: { text: string }) {
   const dot = text.indexOf(" · ");
   const lead = dot === -1 ? text : `${text.slice(0, dot)} ·`;
@@ -248,6 +264,7 @@ export function ScenarioDetails({
   onCopy: () => void;
 }) {
   const sooner = lumpLine(input, result);
+  const topped = topUpLine(input, result);
   return (
     <div className="details" id="scenario-details">
       <AmountField
@@ -260,6 +277,19 @@ export function ScenarioDetails({
       {sooner ? (
         <p className="sooner" data-testid="lump-savings">
           {sooner}
+        </p>
+      ) : null}
+      <AmountField
+        id="payment-top-up"
+        label="Add to each payment"
+        value={input.topUp}
+        optional
+        onValue={(topUp) => onChange({ topUp })}
+      />
+      <p className="breakdown">Check your lender's prepayment privilege limit.</p>
+      {topped ? (
+        <p className="sooner" data-testid="topup-savings">
+          {topped}
         </p>
       ) : null}
       <InvestCompare input={input} result={result} onChange={onChange} />
