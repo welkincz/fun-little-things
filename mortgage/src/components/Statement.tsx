@@ -27,6 +27,7 @@ import { loanToValue, minDownPayment } from "../lib/mortgage/down";
 import { mortgagePayment, type FrequencyId } from "../lib/mortgage/payment";
 import { formatPaymentTopUp, paymentTopUp } from "../lib/mortgage/topup";
 import { breakPenalty, type BreakPenalty } from "../lib/mortgage/penalty";
+import { triggerRate, triggerRateSentence } from "../lib/mortgage/trigger";
 import { maxQualifyingPrincipal } from "../lib/mortgage/qualify";
 import { INSURED_PRICE_CAP, ruleList, RULES_CHECKED } from "../lib/mortgage/rules";
 import type { CalculatorInput, Scenario } from "../lib/mortgage/scenario";
@@ -300,6 +301,7 @@ export function ScenarioDetails({
       <Renewal input={input} result={result} onChange={onChange} />
       <CompareAnotherRate input={input} result={result} onChange={onChange} />
       <BreakEarly input={input} result={result} onChange={onChange} />
+      <TriggerRate input={input} result={result} />
       <Breakdown input={input} result={result} />
       <YearByYear result={result} />
       <How input={input} result={result} onChange={onChange} />
@@ -817,6 +819,73 @@ function keepPaymentText(
     return "Not possible, payment does not cover interest";
   }
   return formatAmortization(row.flatYears, row.flatMonths);
+}
+
+function formatPointsAbove(points: number): string {
+  const shown = formatRate(Math.abs(points) * 100);
+  if (points < -0.00005) return `−${shown} percentage points`;
+  return `${shown} percentage points`;
+}
+
+function TriggerRate({ input, result }: { input: CalculatorInput; result: Scenario }) {
+  const currentRate = input.ratePercent / 100;
+  const start =
+    withheld(result) || result.payment == null
+      ? null
+      : triggerRate({
+          balance: result.loan,
+          payment: result.payment,
+          frequency: input.frequency,
+          currentRate,
+        });
+  const renewal =
+    start == null || result.renewal == null || result.endBalance == null || !(result.endBalance > 0)
+      ? null
+      : triggerRate({
+          balance: result.endBalance,
+          payment: result.payment ?? 0,
+          frequency: input.frequency,
+          currentRate,
+        });
+
+  return (
+    <details className="accordion">
+      <summary>Trigger rate</summary>
+      <div className="accordion-body">
+        {withheld(result) ? (
+          <p>The trigger rate is calculated once the down payment is allowed.</p>
+        ) : start == null ? (
+          <p>The trigger rate needs a balance and a regular payment.</p>
+        ) : (
+          <>
+            <ul className="stats">
+              <li>
+                <span>Trigger rate</span>
+                <strong data-testid="trigger-rate">{formatPercentPoints(start.annualRate)}</strong>
+              </li>
+              <li>
+                <span>Above your rate</span>
+                <strong data-testid="trigger-gap">{formatPointsAbove(start.pointsAbove)}</strong>
+              </li>
+              {renewal ? (
+                <>
+                  <li>
+                    <span>Trigger rate at renewal</span>
+                    <strong data-testid="trigger-rate-renewal">{formatPercentPoints(renewal.annualRate)}</strong>
+                  </li>
+                  <li>
+                    <span>Above your rate at renewal</span>
+                    <strong data-testid="trigger-gap-renewal">{formatPointsAbove(renewal.pointsAbove)}</strong>
+                  </li>
+                </>
+              ) : null}
+            </ul>
+            <p data-testid="trigger-sentence">{triggerRateSentence(start.annualRate)}</p>
+          </>
+        )}
+      </div>
+    </details>
+  );
 }
 
 function Renewal({
